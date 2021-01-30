@@ -1,4 +1,17 @@
 
+Edit: project resurrected.
+
+I might improve and make this functional again.
+
+Updated to use Python 3 and PyQt5. (No longer works with Python 2/Qt4.)
+
+It used to reside here: https://code.google.com/archive/p/amphetype/
+A random review: https://forum.colemak.com/topic/2201-training-with-amphetype/
+
+TODO: rewrite this readme, rewrite help, restructure package;
+everything below is from 12 years ago.
+
+-----
 
 Proper install is coming. I apologize for the current
 mess. It was developed on a Windows machine with few
