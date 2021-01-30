@@ -1,11 +1,9 @@
 
 
-from __future__ import with_statement, division
-
 from QtUtil import *
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from Config import *
 from Data import DB
 import time
@@ -32,7 +30,7 @@ class DatabaseWidget(QWidget):
     def __init__(self, *args):
         super(DatabaseWidget, self).__init__(*args)
 
-        self.connect(self, SIGNAL("change_db_name"), self.dbchange)
+        Settings.signal_for('db_name').connect(self.dbchange)
 
         self.stats_ = QLabel("\nPress Update to fetch database statistics\n")
         self.progress_ = IncrementalProgress(6+2)
@@ -78,7 +76,7 @@ Results: %d
 Analysis data: %d (%d keys, %d trigrams, %d words)
   %d characters and %d words typed total\n'''+
   ("First result was %.2f days ago.\n" % ((time.time()-n_first)/86400.0)),
-            tuple([n_text, n_res, sum(map(lambda x: x[0], n_words))] + map(lambda x: x[0], n_words) +
+            tuple([n_text, n_res, sum([x[0] for x in n_words])] + [x[0] for x in n_words] +
             [n_words[0][1], n_words[2][1]]), True))
 
     def dbchange(self, nn):

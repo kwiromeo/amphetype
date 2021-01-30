@@ -1,9 +1,5 @@
 
 
-from __future__ import division, with_statement
-
-
-
 from itertools import *
 import time
 import bisect
@@ -56,7 +52,7 @@ class Statistic(list):
         return cmp(self.median(), other.median())
 
     def measurement(self):
-        return trimmed_average(len(self), map(lambda x:(x, 1), self))
+        return trimmed_average(len(self), [(x, 1) for x in self])
 
     def median(self):
         l = len(self)
@@ -206,7 +202,7 @@ def switchdb(nn):
     try:
         nDB = sqlite3.connect(nn,5,0,"DEFERRED",False,AmphDatabase)
         DB = nDB
-    except Exception, e:
+    except Exception as e:
         from PyQt4.QtGui import QMessageBox as qmb
         qmb.information(None, "Database Error", "Failed to switch to the new database:\n" + str(e))
 

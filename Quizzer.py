@@ -1,7 +1,3 @@
-# -*- coding: UTF-8 -*-
-
-from __future__ import with_statement, division
-
 
 #import psyco
 import platform
@@ -12,8 +8,9 @@ import re
 from Data import Statistic, DB
 from Config import Settings
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from QtUtil import *
 
 
@@ -26,17 +23,20 @@ else:
 
 
 class Typer(QTextEdit):
+    sigDone = pyqtSignal()
+    sigCancel = pyqtSignal()
+    
     def __init__(self, *args):
-        super(Typer, self).__init__(*args)
+        super().__init__(*args)
 
         self.setPalettes()
 
-        self.connect(self, SIGNAL("textChanged()"), self.checkText)
+        self.textChanged.connect(self.checkText)
         #self.setLineWrapMode(QTextEdit.NoWrap)
-        self.connect(Settings, SIGNAL("change_quiz_wrong_fg"), self.setPalettes)
-        self.connect(Settings, SIGNAL("change_quiz_wrong_bg"), self.setPalettes)
-        self.connect(Settings, SIGNAL("change_quiz_right_fg"), self.setPalettes)
-        self.connect(Settings, SIGNAL("change_quiz_right_bg"), self.setPalettes)
+        Settings.signal_for("quiz_wrong_fg").connect(self.setPalettes)
+        Settings.signal_for("quiz_wrong_bg").connect(self.setPalettes)
+        Settings.signal_for("quiz_right_fg").connect(self.setPalettes)
+        Settings.signal_for("quiz_right_bg").connect(self.setPalettes)
         self.target = None
 
     def sizeHint(self):
@@ -44,19 +44,26 @@ class Typer(QTextEdit):
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
-            self.emit(SIGNAL("cancel"))
+            self.sigCancel.emit()
         return QTextEdit.keyPressEvent(self, e)
 
     def setPalettes(self):
         self.palettes = {
             'wrong': QPalette(Qt.black,
-                Qt.lightGray, Qt.lightGray, Qt.darkGray, Qt.gray,
-                Settings.getColor("quiz_wrong_fg"), Qt.white, Settings.getColor("quiz_wrong_bg"), Qt.yellow),
+                              Qt.lightGray,
+                              Qt.lightGray, Qt.darkGray, Qt.gray,
+                              Settings.getColor("quiz_wrong_fg"), Qt.white, Settings.getColor("quiz_wrong_bg"),
+                              Qt.yellow),
             'right': QPalette(Qt.black,
-                Qt.lightGray, Qt.lightGray, Qt.darkGray, Qt.gray,
-                Settings.getColor("quiz_right_fg"), Qt.yellow, Settings.getColor("quiz_right_bg"), Qt.yellow),
-            'inactive': QPalette(Qt.black, Qt.lightGray, Qt.lightGray, Qt.darkGray,
-                                 Qt.gray, Qt.black, Qt.lightGray)}
+                              Qt.lightGray,
+                              Qt.lightGray, Qt.darkGray, Qt.gray,
+                              Settings.getColor("quiz_right_fg"), Qt.yellow, Settings.getColor("quiz_right_bg"),
+                              Qt.yellow),
+            'inactive': QPalette(Qt.black,
+                                 Qt.lightGray,
+                                 Qt.lightGray, Qt.darkGray, Qt.gray,
+                                 Qt.black, Qt.white, Qt.lightGray,
+                                 Qt.yellow)}
         self.setPalette(self.palettes['inactive'])
 
     def setTarget(self,  text):
@@ -84,9 +91,9 @@ class Typer(QTextEdit):
         if self.target is None or self.editflag:
             return
 
-        v = unicode(self.toPlainText())
+        v = str(self.toPlainText())
         if self.when[0] == 0:
-            space = len(v) > 0 and v[-1] == u" "
+            space = len(v) > 0 and v[-1] == " "
             req = Settings.get('req_space')
 
             self.editflag = True
@@ -105,7 +112,7 @@ class Typer(QTextEdit):
                 self.when[0] = -1
 
         y = 0
-        for y in xrange(min(len(v), len(self.target)), -1, -1):
+        for y in range(min(len(v), len(self.target)), -1, -1):
             if v[0:y] == self.target[0:y]:
                 break
         lcd = v[0:y]
@@ -117,7 +124,7 @@ class Typer(QTextEdit):
                 self.times[y-1] = self.when[y] - self.when[y-1]
 
         if lcd == self.target:
-            self.emit(SIGNAL("done"))
+            self.sigDone.emit()
             return
 
         if y < len(v) and y < len(self.target):
@@ -131,7 +138,7 @@ class Typer(QTextEdit):
 
     def getMistakes(self):
         inv = collections.defaultdict(lambda: 0)
-        for p, m in self.mistakes.iteritems():
+        for p, m in self.mistakes.items():
             inv[m] += 1
         return inv
 
@@ -145,6 +152,10 @@ class Typer(QTextEdit):
         return self.when[self.where]-self.when[0], self.where, self.times, self.mistake, self.getMistakes()
 
 class Quizzer(QWidget):
+    wantReview = pyqtSignal('PyQt_PyObject')
+    wantText = pyqtSignal()
+    statsChanged = pyqtSignal()
+    
     def __init__(self, *args):
         super(Quizzer, self).__init__(*args)
 
@@ -155,10 +166,10 @@ class Quizzer(QWidget):
         #self.label.setFrameStyle(QFrame.Raised | QFrame.StyledPanel)
         #self.typer.setBuddy(self.label)
         #self.info = QLabel()
-        self.connect(self.typer,  SIGNAL("done"), self.done)
-        self.connect(self.typer,  SIGNAL("cancel"), SIGNAL("wantText"))
-        self.connect(Settings, SIGNAL("change_typer_font"), self.readjust)
-        self.connect(Settings, SIGNAL("change_show_last"), self.result.setVisible)
+        self.typer.sigDone.connect(self.done)
+        self.typer.sigCancel.connect(self.wantText)
+        Settings.signal_for("typer_font").connect(self.readjust)
+        Settings.signal_for("show_last").connect(self.result.setVisible)
 
         self.text = ('','', 0, None)
 
@@ -178,7 +189,7 @@ class Quizzer(QWidget):
 
     def setText(self, text):
         self.text = text
-        self.label.setText(self.text[2].replace(u"\n", u"↵\n"))
+        self.label.setText(self.text[2].replace("\n", "↵\n"))
         self.typer.setTarget(self.text[2])
         self.typer.setFocus()
 
@@ -188,9 +199,9 @@ class Quizzer(QWidget):
 
         assert chars == len(self.text[2])
 
-        accuracy = 1.0 - len(filter(None, mis)) / chars
+        accuracy = 1.0 - len([_f for _f in mis if _f]) / chars
         spc = elapsed / chars
-        viscosity = sum(map(lambda x: ((x-spc)/spc)**2, times)) / chars
+        viscosity = sum([((x-spc)/spc)**2 for x in times]) / chars
 
         DB.execute('insert into result (w,text_id,source,wpm,accuracy,viscosity) values (?,?,?,?,?,?)',
                    (now, self.text[0], self.text[1], 12.0/spc, accuracy, viscosity))
@@ -200,7 +211,7 @@ class Quizzer(QWidget):
         self.result.setText("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)"
             % ((12.0/spc, 100.0*accuracy) + v2))
 
-        self.emit(SIGNAL("statsChanged"))
+        self.statsChanged.emit()
 
         stats = collections.defaultdict(Statistic)
         visc = collections.defaultdict(Statistic)
@@ -212,10 +223,10 @@ class Quizzer(QWidget):
 
         def gen_tup(s, e):
             perch = sum(times[s:e])/(e-s)
-            visc = sum(map(lambda x: ((x-perch)/perch)**2, times[s:e]))/(e-s)
-            return (text[s:e], perch, len(filter(None, mis[s:e])), visc)
+            visc = sum([((x-perch)/perch)**2 for x in times[s:e]])/(e-s)
+            return (text[s:e], perch, len([_f for _f in mis[s:e] if _f]), visc)
 
-        for tri, t, m, v in [gen_tup(i, i+3) for i in xrange(0, chars-2)]:
+        for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, chars-2)]:
             stats[tri].append(t, m > 0)
             visc[tri].append(v)
 
@@ -233,7 +244,7 @@ class Quizzer(QWidget):
             return 2
 
         vals = []
-        for k, s in stats.iteritems():
+        for k, s in stats.items():
             v = visc[k].median()
             vals.append( (s.median(), v*100.0, now, len(s), s.flawed(), type(k), k) )
 
@@ -243,7 +254,7 @@ class Quizzer(QWidget):
             DB.executemany_('''insert into statistic
                 (time,viscosity,w,count,mistakes,type,data) values (?,?,?,?,?,?,?)''', vals)
             DB.executemany_('insert into mistake (w,target,mistake,count) values (?,?,?,?)',
-                    [(now, k[0], k[1], v) for k, v in mistakes.iteritems()])
+                    [(now, k[0], k[1], v) for k, v in mistakes.items()])
 
         if is_lesson:
             mins = (Settings.get("min_lesson_wpm"), Settings.get("min_lesson_acc"))
@@ -253,9 +264,9 @@ class Quizzer(QWidget):
         if 12.0/spc < mins[0] or accuracy < mins[1]/100.0:
             self.setText(self.text)
         elif not is_lesson and Settings.get('auto_review'):
-            ws = filter(lambda x: x[5] == 2, vals)
+            ws = [x for x in vals if x[5] == 2]
             if len(ws) == 0:
-                self.emit(SIGNAL("wantText"))
+                self.wantText.emit()
                 return
             ws.sort(key=lambda x: (x[4],x[0]), reverse=True)
             i = 0
@@ -263,7 +274,7 @@ class Quizzer(QWidget):
                 i += 1
             i += (len(ws) - i) // 4
 
-            self.emit(SIGNAL("wantReview"), map(lambda x:x[6], ws[0:i]))
+            self.wantReview([x[6] for x in ws[0:i]])
         else:
-            self.emit(SIGNAL("wantText"))
+            self.wantText.emit()
 

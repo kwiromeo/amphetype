@@ -1,5 +1,4 @@
 
-from __future__ import with_statement, division
 
 import time
 from itertools import *
@@ -11,8 +10,8 @@ from QtUtil import *
 
 import Widgets.Plotters as Plotters
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 
 def dampen(x, n=10):
@@ -65,6 +64,9 @@ class ResultModel(AmphModel):
 
 
 class PerformanceHistory(QWidget):
+    setText = pyqtSignal('PyQt_PyObject')
+    gotoText = pyqtSignal()
+    
     def __init__(self, *args):
         super(PerformanceHistory, self).__init__(*args)
 
@@ -76,17 +78,17 @@ class PerformanceHistory(QWidget):
 
         self.cb_source = QComboBox()
         self.refreshSources()
-        self.connect(self.cb_source, SIGNAL("currentIndexChanged(int)"), self.updateData)
+        self.cb_source.currentIndexChanged[int].connect(self.updateData)
 
         t = AmphTree(self.model)
         t.setUniformRowHeights(True)
         t.setRootIsDecorated(False)
         t.setIndentation(0)
-        self.connect(t, SIGNAL("doubleClicked(QModelIndex)"), self.doubleClicked)
-        self.connect(Settings, SIGNAL('change_graph_what'), self.updateGraph)
-        self.connect(Settings, SIGNAL('change_show_xaxis'), self.updateGraph)
-        self.connect(Settings, SIGNAL('change_chrono_x'), self.updateGraph)
-        self.connect(Settings, SIGNAL("change_dampen_graph"), self.updateGraph)
+        t.doubleClicked['QModelIndex'].connect(self.doubleClicked)
+        Settings.signal_for('graph_what').connect(self.updateGraph)
+        Settings.signal_for('show_xaxis').connect(self.updateGraph)
+        Settings.signal_for('chrono_x').connect(self.updateGraph)
+        Settings.signal_for("dampen_graph").connect(self.updateGraph)
 
         self.setLayout(AmphBoxLayout([
                 ["Show", SettingsEdit("perf_items"), "items from",
@@ -103,18 +105,18 @@ class PerformanceHistory(QWidget):
                 (self.plot, 1)
             ]))
 
-        self.connect(Settings, SIGNAL("change_perf_items"), self.updateData)
-        self.connect(Settings, SIGNAL("change_perf_group_by"), self.updateData)
-        self.connect(Settings, SIGNAL("change_lesson_stats"), self.updateData)
+        Settings.signal_for("perf_items").connect(self.updateData)
+        Settings.signal_for("perf_group_by").connect(self.updateData)
+        Settings.signal_for("lesson_stats").connect(self.updateData)
 
     def updateGraph(self):
         pc = Settings.get('graph_what')
-        y = map(lambda x:x[pc], self.model.rows)
+        y = [x[pc] for x in self.model.rows]
 
         if Settings.get("chrono_x"):
-            x = map(lambda x:x[1], self.model.rows)
+            x = [x[1] for x in self.model.rows]
         else:
-            x = range(len(y))
+            x = list(range(len(y)))
             x.reverse()
 
         if Settings.get("dampen_graph"):
@@ -188,7 +190,7 @@ class PerformanceHistory(QWidget):
 
         sql = sql % (where, group, n)
 
-        self.model.setData(map(list, DB.fetchall(sql)))
+        self.model.setData(list(map(list, DB.fetchall(sql))))
         self.updateGraph()
 
     def doubleClicked(self, idx):
@@ -198,5 +200,5 @@ class PerformanceHistory(QWidget):
         if v == None:
             return # silently ignore
 
-        self.emit(SIGNAL("setText"), v)
-        self.emit(SIGNAL("gotoText"))
+        self.setText.emit(v)
+        self.gotoText.emit()

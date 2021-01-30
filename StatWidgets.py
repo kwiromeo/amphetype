@@ -1,5 +1,5 @@
 
-from __future__ import division, with_statement
+
 
 import time
 
@@ -8,8 +8,8 @@ from QtUtil import *
 from Text import LessonGeneratorPlain
 from Config import *
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 
 
@@ -26,13 +26,15 @@ class WordModel(AmphModel):
         return self.words
 
     def setData(self, words):
-        self.words = map(list, words)
+        self.words = list(map(list, words))
         self.reset()
 
 
 
 
 class StringStats(QWidget):
+    lessonStrings = pyqtSignal('PyQt_PyObject')
+    
     def __init__(self, *args):
         super(StringStats, self).__init__(*args)
 
@@ -58,17 +60,17 @@ class StringStats(QWidget):
         lim = SettingsEdit('ana_many')
         self.w_count = SettingsEdit('ana_count')
 
-        self.connect(Settings, SIGNAL("change_ana_which"), self.update)
-        self.connect(Settings, SIGNAL("change_ana_what"), self.update)
-        self.connect(Settings, SIGNAL("change_ana_many"), self.update)
-        self.connect(Settings, SIGNAL("change_ana_count"), self.update)
-        self.connect(Settings, SIGNAL("history"), self.update)
+        Settings.signal_for("ana_which").connect(self.update)
+        Settings.signal_for("ana_what").connect(self.update)
+        Settings.signal_for("ana_many").connect(self.update)
+        Settings.signal_for("ana_count").connect(self.update)
+        Settings.signal_for("history").connect(self.update)
 
         self.setLayout(AmphBoxLayout([
                 ["Display statistics about the", ob, wc, None, AmphButton("Update List", self.update)],
                 ["Limit list to", lim, "items and don't show items with a count less than", self.w_count,
                     None, AmphButton("Send List to Lesson Generator",
-                         lambda: self.emit(SIGNAL("lessonStrings"), [x[0] for x in self.model.words]))],
+                                     lambda: self.lessonStrings.emit([x[0] for x in self.model.words]))],
                 (self.stats, 1)
             ]))
 

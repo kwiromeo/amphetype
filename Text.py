@@ -1,6 +1,3 @@
-# -*- coding: UTF-8 -*-
-
-from __future__ import division, with_statement
 
 #import psyco
 import re
@@ -9,9 +6,9 @@ import random
 import textwrap
 from Config import Settings
 from itertools import *
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 
-abbreviations = set(map(unicode, [
+abbreviations = set(map(str, [
 'jr', 'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', "sen","rep","sens", "reps",'gov', "attys", "atty", 'supt',
 'det', 'rev', 'col','gen', 'lt', 'cmdr', 'adm', 'capt', 'sgt', 'cpl', 'maj',
 'dept', 'univ', 'assn', 'bros', 'inc', 'ltd', 'co', 'corp',
@@ -23,7 +20,7 @@ abbreviations = set(map(unicode, [
 'Mich', 'Minn', 'Miss', 'Mo', 'Mont', 'Neb', 'Nebr' , 'Nev',
 'Mex', 'Okla', 'Ok', 'Ore', 'Penna', 'Penn', 'Pa'  , 'Dak',
 'Tenn', 'Tex', 'Ut', 'Vt', 'Va', 'Wash', 'Wis', 'Wisc', "Wy",
-'Wyo', 'USAFA', 'Alta' , 'Man', 'Ont', u'Qué', 'Sask', 'Yuk',
+'Wyo', 'USAFA', 'Alta' , 'Man', 'Ont', 'Qué', 'Sask', 'Yuk',
 'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec','sept',
 'vs', 'etc', 'no', 'esp', 'eg', 'ie', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
 'avg', 'viz', 'm', 'mme']))
@@ -36,7 +33,7 @@ class SentenceSplitter(object):
 
     def __iter__(self):
         p = [0]
-        return ifilter(None, imap(lambda x: self.pars(p, x), self.sen.finditer(self.string)))
+        return filter(None, map(lambda x: self.pars(p, x), self.sen.finditer(self.string)))
 
     def pars(self, p, mat):
         if mat.group('pre') and self.isAbbreviation(mat.group('pre')):
@@ -50,6 +47,9 @@ class SentenceSplitter(object):
 
 
 class LessonMiner(QObject):
+    
+    progress = pyqtSignal(int)
+    
     def __init__(self, fname):
         super(LessonMiner, self).__init__()
         #print time.clock()
@@ -73,7 +73,7 @@ class LessonMiner(QObject):
                     self.lessons.append(self.popFormat(backlog))
                     backlen = 0
             i += 1
-            self.emit(SIGNAL("progress(int)"), int(100 * i/len(self.paras)))
+            self.progress[int].emit(int(100 * i/len(self.paras)))
         if backlen > 0:
             self.lessons.append(self.popFormat(backlog))
 
@@ -86,11 +86,11 @@ class LessonMiner(QObject):
             if s is not None:
                 p.append(s)
             else:
-                ret.append(u' '.join(p))
+                ret.append(' '.join(p))
                 p = []
         if len(p) > 0:
-            ret.append(u' '.join(p))
-        return u'\n'.join(ret)
+            ret.append(' '.join(p))
+        return '\n'.join(ret)
 
     def __iter__(self):
         if self.lessons is None:
@@ -102,13 +102,13 @@ class LessonMiner(QObject):
         ps = []
         for l in f:
             l = l.strip()
-            if l <> '':
+            if l != '':
                 p.append(l)
             elif len(p) > 0:
-                ps.append(SentenceSplitter(u" ".join(p)))
+                ps.append(SentenceSplitter(" ".join(p)))
                 p = []
         if len(p) > 0:
-            ps.append(SentenceSplitter(u" ".join(p)))
+            ps.append(SentenceSplitter(" ".join(p)))
         return ps
 
 
@@ -133,11 +133,11 @@ def to_lessons(sentences):
             backlog.append(xs)
             backlen += len(xs)
             if backlen >= min_chars:
-                yield u' '.join(backlog)
+                yield ' '.join(backlog)
                 backlog = []
                 backlen = 0
     if backlen > 0:
-        yield u' '.join(backlog)
+        yield ' '.join(backlog)
 
 
 
@@ -153,7 +153,7 @@ class LessonGeneratorPlain(object):
             wcopy[0:per_lesson] = []
             random.shuffle(lesson)
             self.lessons.append( #textwrap.fill(
-                                                u' '.join(lesson)) #, width))
+                                                ' '.join(lesson)) #, width))
 
     def __iter__(self):
         return iter(self.lessons)
@@ -165,7 +165,7 @@ class LessonGeneratorPlain(object):
 if __name__ == '__main__':
     import sys
     for x in LessonMiner(sys.argv[1]):
-        print "--%s--" % x
+        print("--%s--" % x)
 
 
 

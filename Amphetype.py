@@ -1,9 +1,7 @@
 
-from __future__ import with_statement, division
 
 import os
 import sys
-
 
 # Get command-line --database argument before importing
 # modules which count on database support
@@ -26,8 +24,9 @@ from Config import PreferenceWidget
 from Lesson import LessonGenerator
 from Widgets.Database import DatabaseWidget
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 QApplication.setStyle('cleanlooks')
 
@@ -38,34 +37,37 @@ class TyperWindow(QMainWindow):
 
         self.setWindowTitle("Amphetype")
 
+        self.quitSc = QShortcut(QKeySequence('Ctrl+Q'), self)
+        self.quitSc.activated.connect(QApplication.instance().quit)
+        
         tabs = QTabWidget()
 
         quiz = Quizzer()
         tabs.addTab(quiz, "Typer")
 
         tm = TextManager()
-        self.connect(quiz, SIGNAL("wantText"), tm.nextText)
-        self.connect(tm, SIGNAL("setText"), quiz.setText)
-        self.connect(tm, SIGNAL("gotoText"), lambda: tabs.setCurrentIndex(0))
+        quiz.wantText.connect(tm.nextText)
+        tm.setText.connect(quiz.setText)
+        tm.gotoText.connect(lambda: tabs.setCurrentIndex(0))
         tabs.addTab(tm, "Sources")
 
         ph = PerformanceHistory()
-        self.connect(tm, SIGNAL("refreshSources"), ph.refreshSources)
-        self.connect(quiz, SIGNAL("statsChanged"), ph.updateData)
-        self.connect(ph, SIGNAL("setText"), quiz.setText)
-        self.connect(ph, SIGNAL("gotoText"), lambda: tabs.setCurrentIndex(0))
+        tm.refreshSources.connect(ph.refreshSources)
+        quiz.statsChanged.connect(ph.updateData)
+        ph.setText.connect(quiz.setText)
+        ph.gotoText.connect(lambda: tabs.setCurrentIndex(0))
         tabs.addTab(ph, "Performance")
 
         st = StringStats()
-        self.connect(st, SIGNAL("lessonStrings"), lambda x: tabs.setCurrentIndex(4))
+        st.lessonStrings.connect(lambda x: tabs.setCurrentIndex(4))
         tabs.addTab(st, "Analysis")
 
         lg = LessonGenerator()
-        self.connect(st, SIGNAL("lessonStrings"), lg.addStrings)
-        self.connect(lg, SIGNAL("newLessons"), lambda: tabs.setCurrentIndex(1))
-        self.connect(lg, SIGNAL("newLessons"), tm.addTexts)
-        self.connect(quiz, SIGNAL("wantReview"), lg.wantReview)
-        self.connect(lg, SIGNAL("newReview"), tm.newReview)
+        st.lessonStrings.connect(lg.addStrings)
+        lg.newLessons.connect(lambda: tabs.setCurrentIndex(1))
+        lg.newLessons.connect(tm.addTexts)
+        quiz.wantReview.connect(lg.wantReview)
+        lg.newReview.connect(tm.newReview)
         tabs.addTab(lg, "Lesson Generator")
 
         dw = DatabaseWidget()
@@ -104,7 +106,7 @@ w.show()
 
 app.exec_()
 
-print "exit"
+print("exit")
 DB.commit()
 
 

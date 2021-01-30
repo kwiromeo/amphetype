@@ -1,9 +1,9 @@
 
-from __future__ import with_statement, division
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 
 class WWLabel(QLabel):
@@ -95,7 +95,7 @@ class AmphModel(QAbstractItemModel):
             return QVariant()
         if self.fmt[col] is None:
             return QVariant(data)
-        elif isinstance(self.fmt[col], basestring):
+        elif isinstance(self.fmt[col], str):
             return QVariant(self.fmt[col] % data)
         return QVariant(self.fmt[col](data))
 
@@ -112,9 +112,10 @@ class AmphModel(QAbstractItemModel):
         self.reset()
 
     def reset(self):
+        self.beginResetModel()
         self.rows = self.populateData(())
         self.idxs = {}
-        QAbstractItemModel.reset(self)
+        self.endResetModel()
 
     def populateData(self, idxs):
         pass
@@ -132,8 +133,8 @@ class AmphTree(QTreeView):
         self.setWordWrap(True)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         #self.setExpandsOnDoubleClick(False)
-        self.header().setClickable(True)
-        self.connect(self.header(), SIGNAL("sectionClicked(int)"), self.sortByColumn)
+        self.header().setSectionsClickable(True)
+        self.header().sectionClicked[int].connect(self.sortByColumn)
 
 
 class AmphBoxLayout(QBoxLayout):
@@ -147,14 +148,14 @@ class AmphBoxLayout(QBoxLayout):
                 self.addStuff(x)
 
     def addStuff(self, x, stretch=0):
-        if isinstance(x, basestring):
+        if isinstance(x, str):
             if x[-1] == "\n":
                 self.addWidget(WWLabel(x[:-1]), stretch)
             else:
                 self.addWidget(QLabel(x), stretch)
         elif isinstance(x, list):
             self.addLayout(self.getInstance(x), stretch)
-        elif isinstance(x, (int, long)):
+        elif isinstance(x, int):
             self.addSpacing(x)
         elif x is None:
             self.addStretch(1 if stretch == 0 else stretch)
@@ -175,8 +176,8 @@ class AmphGridLayout(QGridLayout):
     def __init__(self, grid):
         QGridLayout.__init__(self)
 
-        for row in xrange(len(grid)):
-            for col in xrange(len(grid[row])):
+        for row in range(len(grid)):
+            for col in range(len(grid[row])):
                 x = grid[row][col]
                 if isinstance(x, tuple):
                     self.addStuff(x[0], (row, col), *x[1:])
@@ -188,7 +189,7 @@ class AmphGridLayout(QGridLayout):
             args = pos + span
         else:
             args = pos + span + (align, )
-        if isinstance(x, basestring):
+        if isinstance(x, str):
             if x[-1] == "\n":
                 self.addWidget(WWLabel(x[:-1]), *args)
             else:
@@ -198,7 +199,7 @@ class AmphGridLayout(QGridLayout):
         elif x is None:
             self.setColumnStretch(pos[1], span[1])
             self.setRowStretch(pos[0], span[0])
-        elif isinstance(x, (int, long)):
+        elif isinstance(x, int):
             pass
         elif isinstance(x, complex):
             self.setRowStretch(int(x.real), span[0])
@@ -215,13 +216,13 @@ class AmphGridLayout(QGridLayout):
 class AmphButton(QPushButton):
     def __init__(self, text, callback, *args):
         super(AmphButton, self).__init__(text, *args)
-        self.connect(self, SIGNAL("clicked()"), callback)
+        self.clicked.connect(callback)
 
 class AmphEdit(QLineEdit):
     def __init__(self, text, callback, validator=None):
         super(AmphEdit, self).__init__(text)
         if validator is not None:
             self.setValidator(validator(self))
-        self.connect(self, SIGNAL("editingFinished()"), callback)
+        self.editingFinished.connect(callback)
 
 

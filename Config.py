@@ -1,10 +1,10 @@
 
-from __future__ import with_statement
 
-import cPickle
+
+import pickle
 from QtUtil import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 import getpass
 
 try:
@@ -14,7 +14,17 @@ try:
 except:
     _dbname = "typer.db"
 
-class AmphSettings(QSettings):
+
+class SettingsMeta(type(QObject)):
+    def __new__(cls, name, bases, ns):
+        for k,v in ns['defaults'].items():
+            ns['change_' + k] = pyqtSignal([type(v)])
+        return super().__new__(cls, name, bases, ns)
+
+
+class AmphSettings(QSettings, metaclass=SettingsMeta):
+
+    change = pyqtSignal()
 
     defaults = {
             "typer_font": str(QFont("Arial", 14).toString()),
@@ -71,13 +81,18 @@ class AmphSettings(QSettings):
         }
 
     def __init__(self, *args):
-        super(AmphSettings, self).__init__(QSettings.IniFormat, QSettings.UserScope, "Amphetype", "Amphetype")
+        super(AmphSettings, self).__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
+        # for k,v in self.defaults.items():
+        #     if not self.contains(k):
+        #         self.setValue(k, v)
 
     def get(self, k):
-        v = self.value(k)
-        if not v.isValid():
-            return self.defaults[k]
-        return cPickle.loads(str(v.toString()))
+        return self.value(k, self.defaults[k], type=type(self.defaults[k]))
+    # def get(self, k):
+    #     v = self.value(k)
+    #     if not v.isValid():
+    #         return self.defaults[k]
+    #     return pickle.loads(str(v.toString()))
 
     def getFont(self, k):
         qf = QFont()
@@ -91,10 +106,17 @@ class AmphSettings(QSettings):
         p = self.get(k)
         if p == v:
             return
-        self.setValue(k, QVariant(cPickle.dumps(v)))
-        self.emit(SIGNAL("change"))
-        self.emit(SIGNAL("change_" + k), v)
+        w = v
+        if isinstance(v, QColor):
+            w = v.name()
+        elif isinstance(v, QFont):
+            w = str(v)
+        self.setValue(k, v)
+        self.change.emit()
+        self.signal_for(k).emit(v)
 
+    def signal_for(self, k):
+        return getattr(self, 'change_' + k)
 
 
 Settings = AmphSettings()
@@ -110,7 +132,7 @@ class SettingsColor(AmphButton):
         color = QColorDialog.getColor(Settings.getColor(self.key_), self)
         if not color.isValid():
             return
-        Settings.set(self.key_, unicode(color.name()))
+        Settings.set(self.key_, str(color.name()))
         self.updateIcon()
 
     def updateIcon(self):
@@ -129,7 +151,7 @@ class SettingsEdit(AmphEdit):
         validator = None
         if isinstance(val, float):
             validator = QDoubleValidator
-        elif isinstance(val, (int, long)):
+        elif isinstance(val, int):
             validator = QIntValidator
         if validator is None:
             self.fmt = lambda x: x
@@ -139,7 +161,7 @@ class SettingsEdit(AmphEdit):
                             self.fmt(val),
                             lambda: Settings.set(setting, typ(self.text())),
                             validator=validator)
-        self.connect(Settings, SIGNAL("change_" + setting), lambda x: self.setText(self.fmt(x)))
+        Settings.signal_for(setting).connect(lambda x: self.setText(self.fmt(x)))
 
 
 class SettingsCombo(QComboBox):
@@ -149,7 +171,7 @@ class SettingsCombo(QComboBox):
         prev = Settings.get(setting)
         self.idx2item = []
         for i in range(len(lst)):
-            if isinstance(lst[i], basestring):
+            if isinstance(lst[i], str):
                 # not a tuple, use index as key
                 k, v = i, lst[i]
             else:
@@ -159,8 +181,7 @@ class SettingsCombo(QComboBox):
             if k == prev:
                 self.setCurrentIndex(i)
 
-        self.connect(self, SIGNAL("activated(int)"),
-                    lambda x: Settings.set(setting, self.idx2item[x]))
+        self.activated[int].connect(lambda x: Settings.set(setting, self.idx2item[x]))
 
         #self.connect(Settings, SIGNAL("change_" + setting),
         #            lambda x: self.setCurrentIndex(self.item2idx[x]))
@@ -169,8 +190,7 @@ class SettingsCheckBox(QCheckBox):
     def __init__(self, setting, *args):
         super(SettingsCheckBox, self).__init__(*args)
         self.setCheckState(Qt.Checked if Settings.get(setting) else Qt.Unchecked)
-        self.connect(self, SIGNAL("stateChanged(int)"),
-                    lambda x: Settings.set(setting, True if x == Qt.Checked else False))
+        self.stateChanged[int].connect(lambda x: Settings.set(setting, True if x == Qt.Checked else False))
 
 class PreferenceWidget(QWidget):
     def __init__(self):
@@ -212,7 +232,7 @@ class PreferenceWidget(QWidget):
 
     def setFont(self):
         font, ok = QFontDialog.getFont(Settings.getFont('typer_font'), self)
-        Settings.set("typer_font", unicode(font.toString()))
+        Settings.set("typer_font", str(font.toString()))
         self.updateFont()
 
     def updateFont(self):
