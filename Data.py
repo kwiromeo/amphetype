@@ -203,12 +203,7 @@ def switchdb(nn):
     nDB = sqlite3.connect(nn,5,0,"DEFERRED",False,AmphDatabase)
     DB = nDB
   except Exception as e:
-    from PyQt4.QtGui import QMessageBox as qmb
+    from PyQt5.QtGui import QMessageBox as qmb
     qmb.information(None, "Database Error", "Failed to switch to the new database:\n" + str(e))
-
-
-
-
-#Item = ItemStatistics()
 
 
