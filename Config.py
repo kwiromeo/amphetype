@@ -6,13 +6,7 @@ from QtUtil import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import getpass
-
-try:
-  _dbname = getpass.getuser() or "typer"
-  if '.' not in _dbname:
-    _dbname += '.db'
-except:
-  _dbname = "typer.db"
+import os
 
 
 class SettingsMeta(type(QObject)):
@@ -26,6 +20,9 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
 
   change = pyqtSignal()
 
+  # Whenever types need to be checked on settings it will use the
+  # types provided here, so always set a default of the type the
+  # setting will have.
   defaults = {
       "typer_font": str(QFont("Arial", 14).toString()),
       "history": 30.0,
@@ -35,7 +32,7 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
       "perf_group_by": 0,
       "perf_items": 100,
       "text_regex": r"",
-      "db_name": _dbname,
+      "db_name": '', # <- will be set in __init__
       "select_method": 0,
       "num_rand": 50,
       "graph_what": 3,
@@ -82,17 +79,18 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
 
   def __init__(self, *args):
     super(AmphSettings, self).__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
-    # for k,v in self.defaults.items():
-    #   if not self.contains(k):
-    #     self.setValue(k, v)
+
+    # Set db_name here, when we know app name.
+    try:
+      _dbname = getpass.getuser() or "typer"
+    except: # Docs just say "otherwise, an exception is raised."
+      _dbname = "typer"
+
+    pth = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
+    self.defaults['db_name'] = os.path.join(pth, _dbname + '.db')
 
   def get(self, k):
     return self.value(k, self.defaults[k], type=type(self.defaults[k]))
-  # def get(self, k):
-  #   v = self.value(k)
-  #   if not v.isValid():
-  #     return self.defaults[k]
-  #   return pickle.loads(str(v.toString()))
 
   def getFont(self, k):
     qf = QFont()

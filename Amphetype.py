@@ -100,6 +100,7 @@ class AboutWidget(QTextBrowser):
     self.setReadOnly(True)
 
 app = QApplication(sys.argv)
+app.setApplicationName('amphetype')
 
 w = TyperWindow()
 w.show()
