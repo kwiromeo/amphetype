@@ -24,7 +24,8 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
   # setting will have.
   defaults = {
     "typer_font": str(QFont("Arial", 14).toString()),
-    "qt_theme": "<default>",
+    "qt_style": "", # Will be set in __init__().
+    "qt_css": "<none>",
     
     "history": 30.0,
     "min_chars": 220,
@@ -33,7 +34,7 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
     "perf_group_by": 0,
     "perf_items": 100,
     "text_regex": r"",
-    "db_name": '', # <- will be set in __init__
+    "db_name": '', # Will be set in __init__().
     "select_method": 0,
     "num_rand": 50,
     "graph_what": 3,
@@ -81,7 +82,8 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
   def __init__(self, *args):
     super(AmphSettings, self).__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
 
-    # Set db_name here, when we know app name.
+    # Set some runtime defaults here.
+    
     try:
       _dbname = getpass.getuser() or "typer"
     except: # Docs just say "otherwise, an exception is raised."
@@ -89,6 +91,11 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
 
     pth = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
     self.defaults['db_name'] = os.path.join(pth, _dbname + '.db')
+
+    if not QApplication.instance():
+      self.defaults['qt_style'] = '???'
+    else:
+      self.defaults['qt_style'] = QApplication.instance().style().objectName().lower()
 
   def get(self, k):
     return self.value(k, self.defaults[k], type=type(self.defaults[k]))
@@ -118,7 +125,6 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
     return getattr(self, 'change_' + k)
 
 
-Settings = AmphSettings()
 
 
 class SettingsColor(AmphButton):
@@ -192,38 +198,84 @@ class SettingsCheckBox(QCheckBox):
     self.stateChanged[int].connect(lambda x: Settings.set(setting, True if x == Qt.Checked else False))
 
 
-def get_available_themes():
-  yield '<default>' # Must match the name in Settings.default
-
-  for x in QStyleFactory.keys():
-    yield 'QT:' + x
-  
+def find_css_files():
+  # XXX: cleanup / make consistent.
   places = [QStandardPaths.AppLocalDataLocation,
             QStandardPaths.AppDataLocation,
             QStandardPaths.AppConfigLocation,
+            Path(__file__).parent / 'css',
+            Path(__file__).parent.parent / 'css',
             Path(__file__).parent / 'styles',
             Path(__file__).parent.parent / 'styles']
+
+  res = set()
   for p in places:
     if not isinstance(p, Path):
-      pth = QStandardPaths.locate(p, 'styles', QStandardPaths.LocateDirectory)
+      pth = QStandardPaths.locate(p, 'css', QStandardPaths.LocateDirectory)
       if not pth:
         continue
       p = Path(pth)
     # print(f"scanning dir {p}")
-    for f in list(p.glob('*.stylesheet')) + list(p.glob('*.css')):
-      yield 'CSS:' + str(f)
+    for f in list(p.glob('*.qss')) + list(p.glob('*.stylesheet')) + list(p.glob('*.css')):
+      res.add(str(f))
+
+  return set(res)
+ 
+
+
+class SelectCSSBox(QComboBox):
+  def __init__(self, *args):
+    super().__init__(*args)
+
+    Settings.signal_for('qt_css').connect(self.refresh)
+    self.activated[int].connect(self.setIdx)
+    self.refresh()
+
+  def setIdx(self, idx):
+    if idx == 0:
+      Settings.set('qt_css', '<none>')
+    elif idx <= len(self._files):
+      Settings.set('qt_css', self._files[idx-1])
+    else:
+      # <select file>
+      qf = QFileDialog(self, "Select CSS Theme")
+      qf.setNameFilters(["QT CSS stylesheet (*.qss *.css *.stylesheet)", "All files (*)"])
+      qf.setFileMode(QFileDialog.ExistingFile)
+      qf.setAcceptMode(QFileDialog.AcceptOpen)
+      qf.fileSelected['QString'].connect(self.setCustomCSS)
+      qf.show()
+
+  def setCustomCSS(self, fname):
+    Settings.set('qt_css', fname)
+
+  def refresh(self):
+    cur = Settings.get('qt_css')
+    _files = find_css_files()
+    if cur not in _files and cur != '<none>':
+      _files.add(cur)
+    self._files = sorted(_files)
+    
+    self.clear()
+    self.addItem('<none>')
+    self.setCurrentIndex(0)
+    for i,v in enumerate(self._files):
+      self.addItem(v)
+      if v == cur:
+        self.setCurrentIndex(i+1)
+    self.addItem('<select file...>')
+
 
 class PreferenceWidget(QWidget):
   def __init__(self):
     super(PreferenceWidget, self).__init__()
 
     self.font_lbl = QLabel()
-    
-    self.theme_box = SettingsCombo('qt_theme', [(x,x) for x in get_available_themes()])
+
+    self.style_box = SettingsCombo('qt_style', [(x.lower(), x.lower()) for x in QStyleFactory.keys()])
 
     self.setLayout(AmphBoxLayout([
       ["Typer font is", self.font_lbl, AmphButton("Change...", self.setFont), None],
-      ["UI theme is", self.theme_box, None],
+      ["QT5 style is", self.style_box, 'and CSS theme is', SelectCSSBox(), None],
       None,
 
       [SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts."),
@@ -265,3 +317,8 @@ class PreferenceWidget(QWidget):
     self.font_lbl.setText(Settings.get("typer_font"))
     qf = Settings.getFont('typer_font')
     self.font_lbl.setFont(qf)
+
+
+
+Settings = AmphSettings()
+

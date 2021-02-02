@@ -12,6 +12,7 @@ log.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 import os
+from pathlib import Path
 
 # Get command-line --database argument before importing
 # modules which count on database support
@@ -110,22 +111,21 @@ class AboutWidget(QTextBrowser):
     self.setReadOnly(True)
 
 
-_default_style = app.style()
-def set_theme(thm):
-  app.setStyle('doesntexist')
-  app.setStyleSheet('')
-  if thm == '<default>':
-    pass
-  elif thm.startswith('QT:'):
-    app.setStyle(thm[3:])
-  elif thm.startswith('CSS:'):
-    with open(thm[4:], 'r') as f:
-      app.setStyleSheet(f.read())
+def set_qt_css(fname):
+  if fname == '<none>':
+    app.setStyleSheet('')
   else:
-    log.warn("Unknown style: %s", thm)
-      
-Settings.signal_for('qt_theme').connect(set_theme)
-set_theme(Settings.get('qt_theme'))
+    if Path(fname).is_file():
+      with Path(fname).open('r') as f:
+        app.setStyleSheet(f.read())
+    else:
+      log.warn('file not found: %s', fname)
+
+Settings.signal_for('qt_css').connect(set_qt_css)
+set_qt_css(Settings.get('qt_css'))
+
+Settings.signal_for('qt_style').connect(app.setStyle)
+app.setStyle(Settings.get('qt_style'))
 
 w = TyperWindow()
 
@@ -133,7 +133,6 @@ w.show()
 
 app.exec_()
 
-print("exit")
 DB.commit()
 
 
