@@ -1,13 +1,12 @@
 
 
-
 import pickle
 from QtUtil import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import getpass
 import os
-
+from pathlib import Path
 
 class SettingsMeta(type(QObject)):
   def __new__(cls, name, bases, ns):
@@ -24,58 +23,60 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
   # types provided here, so always set a default of the type the
   # setting will have.
   defaults = {
-      "typer_font": str(QFont("Arial", 14).toString()),
-      "history": 30.0,
-      "min_chars": 220,
-      "max_chars": 600,
-      "lesson_stats": 0, # show text/lesson in perf -- not used anymore
-      "perf_group_by": 0,
-      "perf_items": 100,
-      "text_regex": r"",
-      "db_name": '', # <- will be set in __init__
-      "select_method": 0,
-      "num_rand": 50,
-      "graph_what": 3,
-      "req_space": True,
-      "show_last": True,
-      "show_xaxis": False,
-      "chrono_x": False,
-      "dampen_graph": False,
+    "typer_font": str(QFont("Arial", 14).toString()),
+    "qt_theme": "<default>",
+    
+    "history": 30.0,
+    "min_chars": 220,
+    "max_chars": 600,
+    "lesson_stats": 0, # show text/lesson in perf -- not used anymore
+    "perf_group_by": 0,
+    "perf_items": 100,
+    "text_regex": r"",
+    "db_name": '', # <- will be set in __init__
+    "select_method": 0,
+    "num_rand": 50,
+    "graph_what": 3,
+    "req_space": True,
+    "show_last": True,
+    "show_xaxis": False,
+    "chrono_x": False,
+    "dampen_graph": False,
 
-      "minutes_in_sitting": 60.0,
-      "dampen_average": 10,
-      "def_group_by": 10,
+    "minutes_in_sitting": 60.0,
+    "dampen_average": 10,
+    "def_group_by": 10,
 
-      "use_lesson_stats": False,
-      "auto_review": False,
+    "use_lesson_stats": False,
+    "auto_review": False,
 
-      "min_wpm": 0.0,
-      "min_acc": 0.0,
-      "min_lesson_wpm": 0.0,
-      "min_lesson_acc": 97.0,
+    "min_wpm": 0.0,
+    "min_acc": 0.0,
+    "min_lesson_wpm": 0.0,
+    "min_lesson_acc": 97.0,
 
-      "quiz_right_fg": "#000000",
-      "quiz_right_bg": "#ffffff",
-      "quiz_wrong_fg": "#ffffff",
-      "quiz_wrong_bg": "#000000",
+    "quiz_right_fg": "#000000",
+    "quiz_right_bg": "#ffffff",
+    "quiz_wrong_fg": "#ffffff",
+    "quiz_wrong_bg": "#000000",
+    
+    "group_month": 365.0,
+    "group_week": 30.0,
+    "group_day": 7.0,
 
-      "group_month": 365.0,
-      "group_week": 30.0,
-      "group_day": 7.0,
+    "ana_which": "wpm asc",
+    "ana_what": 0,
+    "ana_many": 30,
+    "ana_count": 1,
 
-      "ana_which": "wpm asc",
-      "ana_what": 0,
-      "ana_many": 30,
-      "ana_count": 1,
-
-      "gen_copies": 3,
-      "gen_take": 2,
-      "gen_mix": 'c',
-      #"gen_stats": False,
-      "str_clear": 's',
-      "str_extra": 10,
-      "str_what": 'e'
-    }
+    "gen_copies": 3,
+    "gen_take": 2,
+    "gen_mix": 'c',
+    #"gen_stats": False,
+    "str_clear": 's',
+    "str_extra": 10,
+    "str_what": 'e'
+  }
 
   def __init__(self, *args):
     super(AmphSettings, self).__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
@@ -190,14 +191,41 @@ class SettingsCheckBox(QCheckBox):
     self.setCheckState(Qt.Checked if Settings.get(setting) else Qt.Unchecked)
     self.stateChanged[int].connect(lambda x: Settings.set(setting, True if x == Qt.Checked else False))
 
+
+def get_available_themes():
+  yield '<default>' # Must match the name in Settings.default
+
+  for x in QStyleFactory.keys():
+    yield 'QT:' + x
+  
+  places = [QStandardPaths.AppLocalDataLocation,
+            QStandardPaths.AppDataLocation,
+            QStandardPaths.AppConfigLocation,
+            Path(__file__).parent / 'styles',
+            Path(__file__).parent.parent / 'styles']
+  for p in places:
+    if not isinstance(p, Path):
+      pth = QStandardPaths.locate(p, 'styles', QStandardPaths.LocateDirectory)
+      if not pth:
+        continue
+      p = Path(pth)
+    # print(f"scanning dir {p}")
+    for f in list(p.glob('*.stylesheet')) + list(p.glob('*.css')):
+      yield 'CSS:' + str(f)
+
 class PreferenceWidget(QWidget):
   def __init__(self):
     super(PreferenceWidget, self).__init__()
 
     self.font_lbl = QLabel()
+    
+    self.theme_box = SettingsCombo('qt_theme', [(x,x) for x in get_available_themes()])
 
     self.setLayout(AmphBoxLayout([
       ["Typer font is", self.font_lbl, AmphButton("Change...", self.setFont), None],
+      ["UI theme is", self.theme_box, None],
+      None,
+
       [SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts."),
         ('<a href="http://code.google.com/p/amphetype/wiki/Settings">(help)</a>\n', 1)],
       SettingsCheckBox('show_last', "Show last result(s) above text in the Typer."),

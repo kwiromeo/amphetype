@@ -48,6 +48,11 @@ class Typer(QTextEdit):
     return QTextEdit.keyPressEvent(self, e)
 
   def setPalettes(self):
+    self._css = {
+      'wrong': f"QTextEdit {{ background-color: {Settings.get('quiz_wrong_bg')}; color: {Settings.get('quiz_wrong_fg')} }}",
+      'right': f"QTextEdit {{ background-color: {Settings.get('quiz_right_bg')}; color: {Settings.get('quiz_right_fg')} }}",
+      'inactive': '' }
+    
     self.palettes = {
       'wrong': QPalette(Qt.black,
                 Qt.lightGray,
@@ -64,7 +69,8 @@ class Typer(QTextEdit):
                  Qt.lightGray, Qt.darkGray, Qt.gray,
                  Qt.black, Qt.white, Qt.lightGray,
                  Qt.yellow)}
-    self.setPalette(self.palettes['inactive'])
+    # self.setPalette(self.palettes['inactive'])
+    self.setStyleSheet(self._css['inactive'])
 
   def setTarget(self,  text):
     self.editflag = True
@@ -75,7 +81,8 @@ class Typer(QTextEdit):
     self.mistakes = {} #collections.defaultdict(lambda: [])
     self.where = 0
     self.clear()
-    self.setPalette(self.palettes['inactive'])
+    # self.setPalette(self.palettes['inactive'])
+    self.setStyleSheet(self._css['inactive'])
     self.setText(self.getWaitText())
     self.selectAll()
     self.editflag = False
@@ -100,7 +107,8 @@ class Typer(QTextEdit):
       if space:
         self.when[0] = timer()
         self.clear()
-        self.setPalette(self.palettes['right'])
+        # self.setPalette(self.palettes['right'])
+        self.setStyleSheet(self._css['right'])
       elif req:
         self.setText(self.getWaitText())
         self.selectAll()
@@ -132,9 +140,11 @@ class Typer(QTextEdit):
       self.mistakes[y] = self.target[y] + v[y]
 
     if v == lcd:
-      self.setPalette(self.palettes['right'])
+      # self.setPalette(self.palettes['right'])
+      self.setStyleSheet(self._css['right'])
     else:
-      self.setPalette(self.palettes['wrong'])
+      # self.setPalette(self.palettes['wrong'])
+      self.setStyleSheet(self._css['wrong'])
 
   def getMistakes(self):
     inv = collections.defaultdict(lambda: 0)

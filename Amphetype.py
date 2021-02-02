@@ -1,7 +1,17 @@
 
+from PyQt5.QtWidgets import *
+import sys
+
+# Do this first of all.
+app = QApplication(sys.argv)
+app.setApplicationName('amphetype')
+
+# Set up logging.
+import logging as log
+log.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 import os
-import sys
 
 # Get command-line --database argument before importing
 # modules which count on database support
@@ -26,7 +36,7 @@ from Widgets.Database import DatabaseWidget
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+
 
 QApplication.setStyle('cleanlooks')
 
@@ -99,10 +109,26 @@ class AboutWidget(QTextBrowser):
     #self.setMargin(40)
     self.setReadOnly(True)
 
-app = QApplication(sys.argv)
-app.setApplicationName('amphetype')
+
+_default_style = app.style()
+def set_theme(thm):
+  app.setStyle('doesntexist')
+  app.setStyleSheet('')
+  if thm == '<default>':
+    pass
+  elif thm.startswith('QT:'):
+    app.setStyle(thm[3:])
+  elif thm.startswith('CSS:'):
+    with open(thm[4:], 'r') as f:
+      app.setStyleSheet(f.read())
+  else:
+    log.warn("Unknown style: %s", thm)
+      
+Settings.signal_for('qt_theme').connect(set_theme)
+set_theme(Settings.get('qt_theme'))
 
 w = TyperWindow()
+
 w.show()
 
 app.exec_()
