@@ -8,9 +8,9 @@ import codecs
 from Data import DB
 
 try:
-  import editdist
+  import editdistance
 except ImportError:
-  import editdist_fake as editdist
+  from fake_imports import editdistance
 
 import Text
 from Config import *
@@ -38,17 +38,29 @@ class StringListWidget(QTextEdit):
     self.filterWords(words)
 
   def addFromFile(self):
-    filen = QFileDialog.getOpenFileName()
-    if filen == '':
+    if getattr(self, '_filedialog', None):
+      self._filedialog.show()
+      return
+
+    qf = QFileDialog(self, "Select Word File")
+    qf.setNameFilters(["All files (*)"])
+    qf.setFileMode(QFileDialog.ExistingFile)
+    qf.setAcceptMode(QFileDialog.AcceptOpen)
+    qf.fileSelected['QString'].connect(self.reallyAddFromFile)
+    qf.show()
+    self._filedialog = qf
+
+  def reallyAddFromFile(self, fname):
+    self._filedialog.close()
+    if fname == '':
       return
     try:
-      with codecs.open(filen, "r", "utf_8_sig") as f:
+      with open(fname, "r", encoding="utf-8-sig") as f:
         words = f.read().split()
     except Exception as e:
-      QMessageBox.warning(self, "Couldn't Read File", str(e))
+      QMessageBox.warning(self, f"Couldn't read file: {fname}", str(e))
       return
     random.shuffle(words)
-
     self.filterWords(words)
 
   def filterWords(self, words):
@@ -60,19 +72,15 @@ class StringListWidget(QTextEdit):
       control = self.getList()
       if len(control) == 0:
         return
+
+      for word in words:
+        pass
       if w == 'e': # encompassing
-        stream = [(sum([x.count(c) for c in control]), x) for x in words]
-        #print "str:", list(stream)[0:10]
-        preres = list(islice(filter(lambda x: x[0]>0, stream), 4*n))
-        #print "pre:", preres
-        preres.sort(key=lambda x: x[0], reverse=True)
-        words = [x[1] for x in preres]
+        words = (word for word in words if any(c in word for c in control))
       else: # similar
-        words = filter(lambda x:
-          0 < min([
-              editdist.distance(x.encode('latin1', 'replace'),
-                        y.encode('latin1', 'replace'))/max(len(y), len(x))
-                for y in control]) < .26, words)
+        words = filter(
+          lambda word: min(editdistance.eval(word,c) / max(len(word), len(c), 1) for c in control) < .26,
+          words)
 
     if Settings.get('str_clear') == 'r': # replace = clear
       self.clear()
