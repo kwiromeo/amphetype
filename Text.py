@@ -117,7 +117,7 @@ def to_lessons(sentences):
   backlen = 0
   min_chars = Settings.get('min_chars')
   max_chars = Settings.get('max_chars')
-  sweet_size = 3*(min_chars + max_chars) // 4
+  sweet_size = int(1.618034*(min_chars + max_chars)) # Golden ratio.
 
   for s in sentences:
     ssplit = []
@@ -125,8 +125,8 @@ def to_lessons(sentences):
       idx = s.find(' ', sweet_size)
       if idx == -1:
         break
-      if idx != -1:
-        ssplid.append(s[:idx])
+      else:
+        ssplit.append(s[:idx])
         s = s[idx+1:]
     ssplit.append(s)
     for xs in ssplit:

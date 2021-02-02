@@ -151,13 +151,13 @@ class LessonGenerator(QWidget):
 
   def generateLesson(self, words):
     copies = Settings.get('gen_copies')
-    take = Settings.get('gen_take')
+    take = Settings.get('gen_take') or len(words)
     mix = Settings.get('gen_mix')
 
     sentences = []
     while len(words) > 0:
-      sen = words[0:take] * copies
-      words[0:take] = []
+      sen = words[:take] * copies
+      words[:take] = []
 
       if mix == 'm': # mingle
         random.shuffle(sen)
