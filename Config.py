@@ -26,6 +26,8 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
     "typer_font": str(QFont("Arial", 14).toString()),
     "qt_style": "", # Will be set in __init__().
     "qt_css": "<none>",
+
+    "text_force_ascii": False,
     
     "history": 30.0,
     "min_chars": 220,
@@ -278,6 +280,7 @@ class PreferenceWidget(QWidget):
       ["QT5 style is", self.style_box, 'and CSS theme is', SelectCSSBox(), None],
       None,
 
+      [SettingsCheckBox("text_force_ascii", 'Force unicode to plain ASCII'), ('(‘fancy’ “quotes” → "normal" quotes, <code>æ</code> → <code>ae</code>, etc.)', 1)],
       [SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts."),
         ('<a href="http://code.google.com/p/amphetype/wiki/Settings">(help)</a>\n', 1)],
       SettingsCheckBox('show_last', "Show last result(s) above text in the Typer."),
