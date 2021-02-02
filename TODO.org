@@ -1,0 +1,16 @@
+
+* OSX build: https://code.google.com/archive/p/amphetype/issues/7
+* DONE text replacements / unicode translations: https://code.google.com/archive/p/amphetype/issues/15 ; https://code.google.com/archive/p/amphetype/issues/19 ; https://code.google.com/archive/p/amphetype/issues/21
+* alt+backspace => delete word: https://code.google.com/archive/p/amphetype/issues/18
+* DONE cli for database: sort of https://code.google.com/archive/p/amphetype/issues/23
+** TODO needs documentation
+* pause mode: https://code.google.com/archive/p/amphetype/issues/2
+* text navigation: https://code.google.com/archive/p/amphetype/issues/4
+* RTL language support: https://code.google.com/archive/p/amphetype/issues/9
+* random Wikipedia articles: https://code.google.com/archive/p/amphetype/issues/16
+* DONE make native default: https://code.google.com/archive/p/amphetype/issues/17
+* DONE CSS theme support
+* texts per day display: https://code.google.com/archive/p/amphetype/issues/20
+* Bug? Why is welcome shown for non-empty db? https://code.google.com/archive/p/amphetype/issues/22
+* allow errors & adjacent errors considered the same error?: github user lalopmak
+* https://github.com/sommerc/pyqt-stylesheets/tree/master/pyqtcss/src/dark_blue and https://doc.qt.io/qt-5/resources.html
