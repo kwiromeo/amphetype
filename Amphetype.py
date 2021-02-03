@@ -39,9 +39,6 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 
-QApplication.setStyle('cleanlooks')
-
-
 class TyperWindow(QMainWindow):
   def __init__(self, *args):
     super(TyperWindow, self).__init__(*args)
