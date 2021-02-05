@@ -14,3 +14,4 @@
 * Bug? Why is welcome shown for non-empty db? https://code.google.com/archive/p/amphetype/issues/22
 * allow errors & adjacent errors considered the same error?: github user lalopmak
 * https://github.com/sommerc/pyqt-stylesheets/tree/master/pyqtcss/src/dark_blue and https://doc.qt.io/qt-5/resources.html
+* PROGRESS Pip package / upload to PyPi

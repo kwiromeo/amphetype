@@ -1,10 +1,9 @@
 
-#import psyco
 import re
 import codecs
 import random
 import textwrap
-from Config import Settings
+from amphetype.Config import Settings
 from itertools import *
 from PyQt5.QtCore import *
 

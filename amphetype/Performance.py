@@ -4,11 +4,11 @@ import time
 from itertools import *
 import operator
 
-from Data import DB
-from Config import *
-from QtUtil import *
+from amphetype.Data import DB
+from amphetype.Config import *
+from amphetype.QtUtil import *
 
-import Widgets.Plotters as Plotters
+import amphetype.Widgets.Plotters as Plotters
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

@@ -4,7 +4,31 @@ Author: Jaime A. Quiroga P.
 Company: GTRONICK
 Last updated: 25/02/2020, 15:42.
 Available at: https://github.com/GTRONICK/QSS/blob/master/ManjaroMix.qss
+
+- modified by fransh for amphetype, 2021-02-05
 */
+
+
+
+QGraphicsView {
+	background:#303033;
+	background-color: #4fa08b;
+}
+
+QHeaderView {
+	color: #a9b7c6;
+	background-color: #222b2e;
+}
+
+QTreeView,QListView {
+	selection-background-color:#007b50;
+	selection-color: #FFFFFF;
+	alternate-background-color:#202023;
+	background-color: #121b1e;
+	color: #d3dae3;
+	border-color: #4fa08b;
+}
+
 QMainWindow {
 	background-color:#151a1e;
 }

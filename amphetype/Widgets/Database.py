@@ -1,11 +1,11 @@
 
 
-from QtUtil import *
+from amphetype.QtUtil import *
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from Config import *
-from Data import DB
+from amphetype.Config import *
+from amphetype.Data import DB
 import time
 import locale
 locale.setlocale(locale.LC_ALL, '')

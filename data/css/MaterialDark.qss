@@ -5,7 +5,28 @@ Inspired on https://github.com/jxfwinter/qt-material-stylesheet
 Company: GTRONICK
 Last updated: 04/12/2018, 15:00.
 Available at: https://github.com/GTRONICK/QSS/blob/master/MaterialDark.qss
+
+- modified by fransh for amphetype, 2021-02-05
+
 */
+
+QGraphicsView {
+	background:#303033;
+}
+
+QHeaderView {
+	color: #a9b7c6;
+	background:#303033;
+}
+
+QTreeView {
+	color: #a9b7c6;
+	background:#101013;
+	selection-background-color:#007b50;
+	selection-color: #FFFFFF;
+	alternate-background-color:#202023;
+}
+
 QMainWindow {
 	background-color:#1e1d23;
 }

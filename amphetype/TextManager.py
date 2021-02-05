@@ -6,10 +6,10 @@ import os.path as path
 import time
 import hashlib
 
-from Text import LessonMiner
-from Data import DB
-from QtUtil import *
-from Config import *
+from amphetype.Text import LessonMiner
+from amphetype.Data import DB
+from amphetype.QtUtil import *
+from amphetype.Config import *
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -147,7 +147,7 @@ A typing program that not only measures your speed and progress, but also gives 
 
   def addFiles(self):
 
-    qf = QFileDialog(self, "Import Text From File(s)")
+    qf = QFileDialog(self, "Import Text From File(s)", directory=str(Settings.DATA_DIR / 'texts'))
     qf.setNameFilters(["UTF-8 text files (*.txt)", "All files (*)"])
     qf.setFileMode(QFileDialog.ExistingFiles)
     qf.setAcceptMode(QFileDialog.AcceptOpen)

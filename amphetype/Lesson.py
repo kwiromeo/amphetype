@@ -5,16 +5,16 @@ from itertools import *
 import random
 import time
 import codecs
-from Data import DB
+from amphetype.Data import DB
 
 try:
   import editdistance
 except ImportError:
-  from fake_imports import editdistance
+  from amphetype.fake_imports import editdistance
 
-import Text
-from Config import *
-from QtUtil import *
+import amphetype.Text as Text
+from amphetype.Config import *
+from amphetype.QtUtil import *
 
 
 class StringListWidget(QTextEdit):
@@ -42,7 +42,7 @@ class StringListWidget(QTextEdit):
       self._filedialog.show()
       return
 
-    qf = QFileDialog(self, "Select Word File")
+    qf = QFileDialog(self, "Select Word File", directory=str(Settings.DATA_DIR / 'wordlists'))
     qf.setNameFilters(["All files (*)"])
     qf.setFileMode(QFileDialog.ExistingFile)
     qf.setAcceptMode(QFileDialog.AcceptOpen)

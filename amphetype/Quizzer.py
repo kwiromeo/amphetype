@@ -5,13 +5,13 @@ import collections
 import time
 import re
 
-from Data import Statistic, DB
-from Config import Settings
+from amphetype.Data import Statistic, DB
+from amphetype.Config import Settings
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from QtUtil import *
+from amphetype.QtUtil import *
 
 
 if platform.system() == "Windows":

@@ -5,7 +5,7 @@ import time
 import bisect
 import sqlite3
 import re
-from Config import Settings
+from amphetype.Config import Settings
 
 
 def trimmed_average(total, series):

@@ -1,7 +1,7 @@
 
 
 import pickle
-from QtUtil import *
+from amphetype.QtUtil import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import getpass
@@ -17,6 +17,7 @@ class SettingsMeta(type(QObject)):
 
 class AmphSettings(QSettings, metaclass=SettingsMeta):
 
+  DATA_DIR = Path(__file__).parent / 'data'
   change = pyqtSignal()
 
   # Whenever types need to be checked on settings it will use the
@@ -87,11 +88,16 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
     # Set some runtime defaults here.
     
     try:
-      _dbname = getpass.getuser() or "typer"
+      _dbname = getpass.getuser() or "user"
     except: # Docs just say "otherwise, an exception is raised."
-      _dbname = "typer"
+      _dbname = "user"
 
     pth = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
+    if pth:
+      Path(pth).mkdir(parents=True, exist_ok=True)
+    else:
+      pth = str(self.DATA_DIR)
+    
     self.defaults['db_name'] = os.path.join(pth, _dbname + '.db')
 
     if not QApplication.instance():
@@ -202,14 +208,12 @@ class SettingsCheckBox(QCheckBox):
 
 def find_css_files():
   # XXX: cleanup / make consistent.
-  places = [QStandardPaths.AppLocalDataLocation,
-            QStandardPaths.AppDataLocation,
-            QStandardPaths.AppConfigLocation,
-            Path(__file__).parent / 'css',
-            Path(__file__).parent.parent / 'css',
-            Path(__file__).parent / 'styles',
-            Path(__file__).parent.parent / 'styles']
-
+  places = [
+    QStandardPaths.AppLocalDataLocation,
+    QStandardPaths.AppDataLocation,
+    QStandardPaths.AppConfigLocation,
+    Settings.DATA_DIR / 'css',
+  ]
   res = set()
   for p in places:
     if not isinstance(p, Path):

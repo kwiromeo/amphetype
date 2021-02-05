@@ -3,10 +3,10 @@
 
 import time
 
-from Data import DB
-from QtUtil import *
-from Text import LessonGeneratorPlain
-from Config import *
+from amphetype.Data import DB
+from amphetype.QtUtil import *
+from amphetype.Text import LessonGeneratorPlain
+from amphetype.Config import *
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

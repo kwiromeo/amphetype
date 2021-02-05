@@ -1,4 +1,5 @@
 
+
 from PyQt5.QtWidgets import *
 import sys
 
@@ -16,7 +17,7 @@ from pathlib import Path
 
 # Get command-line --database argument before importing
 # modules which count on database support
-from Config import Settings
+from amphetype.Config import Settings
 
 import optparse
 opts = optparse.OptionParser()
@@ -26,14 +27,14 @@ v = opts.parse_args()[0]
 if v.database is not None:
   Settings.set('db_name', v.database)
 
-from Data import DB
-from Quizzer import Quizzer
-from StatWidgets import StringStats
-from TextManager import TextManager
-from Performance import PerformanceHistory
-from Config import PreferenceWidget
-from Lesson import LessonGenerator
-from Widgets.Database import DatabaseWidget
+from amphetype.Data import DB
+from amphetype.Quizzer import Quizzer
+from amphetype.StatWidgets import StringStats
+from amphetype.TextManager import TextManager
+from amphetype.Performance import PerformanceHistory
+from amphetype.Config import PreferenceWidget
+from amphetype.Lesson import LessonGenerator
+from amphetype.Widgets.Database import DatabaseWidget
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -98,7 +99,7 @@ class AboutWidget(QTextBrowser):
   def __init__(self, *args):
     html = "about.html file missing!"
     try:
-      html = open("about.html", "r").read()
+      html = (Settings.DATA_DIR / "about.html").open('r').read()
     except:
       pass
     super(AboutWidget, self).__init__(*args)
@@ -124,12 +125,15 @@ set_qt_css(Settings.get('qt_css'))
 Settings.signal_for('qt_style').connect(app.setStyle)
 app.setStyle(Settings.get('qt_style'))
 
-w = TyperWindow()
+def main():
+  w = TyperWindow()
+  w.show()
+  r = app.exec_()
+  DB.commit()
+  return r
 
-w.show()
 
-app.exec_()
-
-DB.commit()
+if __name__ == '__main__':
+  main()
 
 
