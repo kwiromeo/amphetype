@@ -4,7 +4,17 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from functools import cmp_to_key
 
+def maybe_cmp_func(f):
+  def _maybe_cmp_func(a,b):
+    a,b = f(a),f(b)
+    if a==b: return 0
+    if a is None: return -1
+    if b is None: return 1
+    if a < b: return -1
+    return 1
+  return _maybe_cmp_func
 
 class WWLabel(QLabel):
   def __init__(self, *args):
@@ -107,9 +117,11 @@ class AmphModel(QAbstractItemModel):
     return QVariant(self.head[section])
 
   def sort(self, col, order=Qt.AscendingOrder):
+    self.beginResetModel()
     reverse = order != Qt.AscendingOrder
-    self.rows.sort(key=lambda z: z[col+self.hidden], reverse=reverse)
-    self.reset()
+    self.rows.sort(key=cmp_to_key(maybe_cmp_func(lambda z: z[col+self.hidden])), reverse=reverse)
+    self.idxs = {}
+    self.endResetModel()
 
   def reset(self):
     self.beginResetModel()

@@ -21,7 +21,7 @@ import sys
 setup(
   name='amphetype',
   description='advanced typing practice tool',
-  version='0.9.0',
+  version='0.9.1',
   long_description=open('README.md', 'r').read(),
   url='https://gitlab.com/franksh/amphetype',
   author='Frank S. Hestvik',

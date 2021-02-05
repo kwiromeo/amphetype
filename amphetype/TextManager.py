@@ -19,7 +19,7 @@ from PyQt5.QtGui import *
 class SourceModel(AmphModel):
   def signature(self):
     self.hidden = 1
-    return (["Source", "Length", "Results", "WPM", "Dis."],
+    return (["Source", "Length", "Results", "WPM", "Disabled"],
         [None, None, None, "%.1f", None])
 
   def populateData(self, idxs):
@@ -63,11 +63,12 @@ A typing program that not only measures your speed and progress, but also gives 
     self.diff_eval = lambda x: 1
     self.model = SourceModel()
     tv = AmphTree(self.model)
-    tv.resizeColumnToContents(1)
     tv.setColumnWidth(0, 300)
     tv.doubleClicked['QModelIndex'].connect(self.onDoubleClicked)
+    tv.resizeColumnToContents(0)
+    tv.setColumnWidth(0, tv.columnWidth(0) + 40)
     self.tree = tv
-
+    
     self.progress = QProgressBar()
     self.progress.setRange(0, 100)
     self.progress.hide()
@@ -134,12 +135,9 @@ A typing program that not only measures your speed and progress, but also gives 
         if t in tri:
           s += tri[t]
         else:
-          #print "|", t,
           s += expect
           v +=1
       avg = s / (len(text)-2)
-      #print text
-      #print " v=%d,s=%f" % (v, 12.0/avg), "ex:", expect
       return 12.0/avg
 
     self.diff_eval = _func

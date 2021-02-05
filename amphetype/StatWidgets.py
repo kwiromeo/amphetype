@@ -43,6 +43,7 @@ class StringStats(QWidget):
     tw.setIndentation(0)
     tw.setUniformRowHeights(True)
     tw.setRootIsDecorated(False)
+    tw.setAlternatingRowColors(True)
     self.stats = tw
 
     ob = SettingsCombo('ana_which', [
