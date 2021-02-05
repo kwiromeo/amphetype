@@ -1,4 +1,5 @@
 
+# XXX: TODO, .exe installs for windows, app(??) for osx
 # from distutils.core import setup
 # import py2exe
 
@@ -20,15 +21,28 @@ import sys
 
 setup(
   name='amphetype',
-  description='advanced typing practice tool',
+  description='advanced typing practice program',
   version='0.9.1',
+  long_description_content_type='text/markdown',
   long_description=open('README.md', 'r').read(),
+
   url='https://gitlab.com/franksh/amphetype',
   author='Frank S. Hestvik',
   author_email='tristesse@gmail.com',
+  
   license='GPL3',
+  keywords='typing keyboard typist wpm colemak dvorak workman'.split(),
+  classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+  ],
+
   packages=['amphetype', 'amphetype.Widgets'],
   install_requires=['PyQt5', 'translitcodec', 'editdistance'],
+  python_requires='>=3.6', # I use f-strings liberally, carelessly, and licentiously.
+  zip_safe=False, # Because we need data/ to be regular files.
   # include_package_data=True,
   entry_points={
     'gui_scripts': ['amphetype = amphetype:main'],
