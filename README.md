@@ -3,29 +3,25 @@
 
 Amphetype is an advanced typing practice program.
 
-It gives the basic statistics like WPM (words per minute) and
-accuracy, as well as identifies the keys/trigrams/words that break up
-your flow, and what an impact these "viscous" combinations have on
-your typing speed overall.
-
 Features include:
-
-* Entirely and deliberatly layout-agnostic.
-
-  Amphetype doesn't care _what_ keyboard or layout you use, it only
-  looks at _how_ you use it. As such it's likely not suitable for
-  complete typing beginners who need an on-screen keyboard.
 
 * Type your favorite novel!
 
-  One of the ideas behind Amphetype was to not just use boring "stock
-  texts," but to allow me to type texts I actually want to read as well.
-  So a core feature is the ability to import whole novels (for example
-  from [Project Gutenberg](https://www.gutenberg.org/)) and have
-  Amphetype automatically generate bite-sized lessons from the text.
-  When I was learning the [Colemak](https://colemak.com/) keyboard
-  layout, I typed (and thus read) the entire _Metamorphosis_ by Franz
-  Kafka!
+  One of the core ideas behind Amphetype was to not just use boring
+  "stock texts" for typing practice, but to allow me to type texts I
+  actually want to read as well. So one feature is the ability to
+  import whole novels (for example from [Project
+  Gutenberg](https://www.gutenberg.org/)) and have Amphetype
+  automatically generate bite-sized lessons from the text. (When I was
+  learning the [Colemak](https://colemak.com/) keyboard layout, I
+  typed _The Metamorphosis_ by Franz Kafka!)
+  
+* Typing statistics.
+
+  It provides the basic typing statistics (accuracy and WPM), as well
+  as identifying the keys/trigrams/words that break your flow and what
+  impact these "viscous" combinations have on your typing speed
+  overall. Together with graphs over time and so forth.
   
 * Generate lessons from past statistics.
 
@@ -33,23 +29,31 @@ Features include:
   generate texts based on your past performance. Generate blocks of
   text to target practice your slowest words, trigrams, or keys!
 
+* Layout-agnostic.
+
+  Amphetype doesn't care _what_ keyboard or layout you use, it only
+  looks at _how_ you use it. As such it's likely not suitable for
+  complete typing beginners who need an on-screen keyboard.
+
 * Highly customizable with regard to look and feel.
 
 # Installing
 
-**TODO**
+I could use some help in generating installers for MacOS and Windows.
 
-I'll make actual installation packages. For now, the hard way:
+But for now the easiest and recommended way to install is to make sure
+your system has Python (version 3.6+ required) installed and then
+install via `pip`:
 
-Install dependencies:
 ``` bash
-$ pip install translitcodec PyQt5
+$ pip install amphetype
 ```
 
-Run:
+This should give you an executable command `amphetype`, so to run
+simply do:
 
 ``` bash
-$ python Amphetype.py
+$ amphetype
 ```
 
 # Resurrected?
@@ -64,7 +68,7 @@ Qt4).
 
 Review of (old) Amphetype: https://forum.colemak.com/topic/2201-training-with-amphetype/
 
-My own inspiration for switching to a different keyboard layout:
+My own inspiration for switching to a different keyboard layout and why I made Amphetype:
 
 * http://steve-yegge.blogspot.com/2008/09/programmings-dirtiest-little-secret.html
 

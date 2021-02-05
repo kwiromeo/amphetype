@@ -28,7 +28,7 @@ __version__ = "%s"
 
 setup(
   name='amphetype',
-  description='advanced typing practice program',
+  description='Advanced typing practice program',
   version=VERSION,
   long_description_content_type='text/markdown',
   long_description=open('README.md', 'r').read(),
