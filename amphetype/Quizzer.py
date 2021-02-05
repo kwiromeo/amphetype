@@ -300,7 +300,7 @@ class Quizzer(QWidget):
         i += 1
       i += (len(ws) - i) // 4
 
-      self.wantReview([x[6] for x in ws[0:i]])
+      self.wantReview.emit([x[6] for x in ws[0:i]])
     else:
       self.wantText.emit()
 

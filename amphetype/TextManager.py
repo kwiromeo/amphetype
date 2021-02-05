@@ -54,8 +54,8 @@ class TextManager(QWidget):
   refreshSources = pyqtSignal()
 
   defaultText = ("", 0, """Welcome to Amphetype!
-A typing program that not only measures your speed and progress, but also gives you detailed statistics about problem keys, words, common mistakes, and so on. This is just a default text since your database is empty. You might import a novel or text of your choosing and text excerpts will be generated for you automatically. There are also some facilities to generate lessons based on your past statistics! But for now, go to the "Sources" tab and try adding some texts from the "txt" directory.""")
-
+Amphetype is a layout-agnostic typing program that measures your speed and progress while identifying typing problems. This is just a default text since your database is empty. Go to the "Sources" tab and try importing a text. Several whole novels already come packaged with Amphetype! Later on you can generate a new type of texts (called "Lessons") from your statistics directly.
+Good luck!""")
 
   def __init__(self, *args):
     super(TextManager, self).__init__(*args)

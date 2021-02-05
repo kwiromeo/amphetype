@@ -148,7 +148,7 @@ class LessonGenerator(QWidget):
 
   def wantReview(self, words):
     sentences = self.generateLesson(words)
-    self.newReview.connect(' '.join(sentences))
+    self.newReview.emit(' '.join(sentences))
 
   def generatePreview(self):
     words = self.strings.getList()

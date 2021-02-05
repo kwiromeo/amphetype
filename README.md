@@ -43,14 +43,14 @@ I could use some help in generating installers for MacOS and Windows.
 
 But for now the easiest and recommended way to install is to make sure
 your system has Python (version 3.6+ required) installed and then
-install via `pip`:
+install via `pip` or `pip3`:
 
 ``` bash
 $ pip install amphetype
 ```
 
-This should give you an executable command `amphetype`, so to run
-simply do:
+This should give you an executable command `amphetype`, so simply run
+it:
 
 ``` bash
 $ amphetype
@@ -83,6 +83,6 @@ My own inspiration for switching to a different keyboard layout and why I made A
 Using various themes:
 
 ![screenshot1](screenshot-typer.png)
-![screenshot1](screenshot-pref.png)
-![screenshot1](screenshot-graph.png)
-![screenshot1](screenshot5.png)
+![screenshot2](screenshot-pref.png)
+![screenshot3](screenshot-graph.png)
+![screenshot4](screenshot5.png)
