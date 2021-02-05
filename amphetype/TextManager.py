@@ -63,10 +63,9 @@ Good luck!""")
     self.diff_eval = lambda x: 1
     self.model = SourceModel()
     tv = AmphTree(self.model)
-    tv.setColumnWidth(0, 300)
     tv.doubleClicked['QModelIndex'].connect(self.onDoubleClicked)
     tv.resizeColumnToContents(0)
-    tv.setColumnWidth(0, tv.columnWidth(0) + 40)
+    tv.setColumnWidth(0, max(300, tv.columnWidth(0) + 40))
     self.tree = tv
     
     self.progress = QProgressBar()

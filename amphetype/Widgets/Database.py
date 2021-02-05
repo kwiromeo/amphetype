@@ -36,6 +36,7 @@ class DatabaseWidget(QWidget):
     self.progress_ = IncrementalProgress(6+2)
 
     self.setLayout(AmphBoxLayout([
+      ["The database is essentially your 'profile'. It stores all your statistics, the texts you've imported, the lessons you've generated and so forth.", None],
         [AmphButton("Update", self.update), 150,
           ([["Current database:", SettingsEdit("db_name")],
           ["For the database change to take effect you need to restart Amphetype. You can also specify a database name at the command line with the '--database=&lt;file&gt;' switch.\n"]
