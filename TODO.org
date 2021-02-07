@@ -19,3 +19,4 @@
 * allow errors & adjacent errors considered the same error?: github user lalopmak
 * https://github.com/sommerc/pyqt-stylesheets/tree/master/pyqtcss/src/dark_blue and https://doc.qt.io/qt-5/resources.html
 * DONE Pip package / upload to PyPi
+* Locale support? Switching locales. (Minor feature because would really only affect number conversion and formatting and such.)

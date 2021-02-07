@@ -157,25 +157,63 @@ class SettingsColor(AmphButton):
 
 
 
+# TODO: XXX. Perhaps input and format numbers in locale? Possible
+# problems: innumerable. Many (I, for one) will probably want to input
+# things as if in plain C locale and be annoyed if their Uruk-hai
+# locale interferes/invalidates their input. Would be a misfeature
+# until locale-switching is also in place.
+
+# Unrelated: "I am writing a class to represent money, and one issue
+# I've been running into is that "1.50" != str(1.50). str(1.50) equals
+# 1.5, and all of a sudden, POOF. 45 cents have vanished and the
+# amount is now 1 dollar and 5 cents." -StackOverflow user.
+
+# LOCALE = QLocale()
+
+# def float_to_string(val):
+#   if round(val, 6) == int(val):
+#     return LOCALE.toString(val, precision=1)
+#   else:
+#     return LOCALE.toString(val)
+
+# def SettingsEdit(setting):
+#   "Suitable QLineEdit() for given type and implied locale"
+#   val = Settings.get(setting)
+#   if isinstance(val, float):
+#     pass
+#   elif isinstance(val, int):
+#     pass
+#   else:
+#     pass
+
+# Set validators, QDoubleValidator, QIntValidator?
+
 class SettingsEdit(AmphEdit):
   def __init__(self, setting):
     val = Settings.get(setting)
-    typ = type(val)
-    validator = None
+    self.setting = setting
     if isinstance(val, float):
-      validator = QDoubleValidator
+      self.fmt = lambda x: str(round(x, 6))
+      self.conv = float
     elif isinstance(val, int):
-      validator = QIntValidator
-    if validator is None:
+      self.fmt = str
+      self.conv = int
+    elif isinstance(val, str):
       self.fmt = lambda x: x
+      self.conv = lambda x: x
     else:
-      self.fmt = lambda x: "%g" % x
-    super(SettingsEdit, self).__init__(
-              self.fmt(val),
-              lambda: Settings.set(setting, typ(self.text())),
-              validator=validator)
+      raise RuntimeError(f"instantiated with unknown type {type(val)}")
+
+    super(SettingsEdit, self).__init__(self.fmt(val), self.updateVal)
     Settings.signal_for(setting).connect(lambda x: self.setText(self.fmt(x)))
 
+  def updateVal(self):
+    try:
+      v = self.conv(self.text())
+    except ValueError as err:
+      QMessageBox.warning(self, "String Conversion Error", f"Couldn't convert setting value:\n{err}")
+    else:
+      Settings.set(self.setting, v)
 
 class SettingsCombo(QComboBox):
   def __init__(self, setting, lst, *args):
