@@ -6,7 +6,42 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import getpass
 import os
+import re
 from pathlib import Path
+from amphetype.meta import *
+
+
+# First of all parse argument for setting file location.
+import argparse
+
+parser = argparse.ArgumentParser(description="Advanced type training program.")
+parser.add_argument('-l', '--local', action='store_true',
+                    help=f"""uses the local data directory ({DATA_DIR}) for database and
+                    settings. Useful for running a "portable" instance that stores all
+                    files locally instead of in user home directory.""")
+parser.add_argument('-d', '--database', metavar='DBFILE',
+                    help='uses the database file %(metavar)s')
+parser.add_argument('-s', '--settings', metavar='INIFILE',
+                    help="uses settings file %(metavar)s")
+parser.add_argument('-V', '--version', action='version', version=f'amphetype {__version__}')
+
+# parse_known_args() because there might be QT arguments?
+cliopts, _ = parser.parse_known_args()
+
+
+
+
+def get_default_db_name():
+  "Default database name is based on username."
+
+  try:
+    _user = getpass.getuser() or 'user'
+  except: # Docs just say "otherwise, an exception is raised."
+    _user = 'user'
+
+  _user = re.sub('[^a-z0-9_-]', '', _user, flags=re.I) or 'user'
+  return _user + '.db'
+
 
 class SettingsMeta(type(QObject)):
   def __new__(cls, name, bases, ns):
@@ -16,9 +51,8 @@ class SettingsMeta(type(QObject)):
 
 
 class AmphSettings(QSettings, metaclass=SettingsMeta):
-
-  DATA_DIR = Path(__file__).parent / 'data'
   change = pyqtSignal()
+  DATA_DIR = DATA_DIR
 
   # Whenever types need to be checked on settings it will use the
   # types provided here, so always set a default of the type the
@@ -83,27 +117,32 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
   }
 
   def __init__(self, *args):
-    super(AmphSettings, self).__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
+    if cliopts.settings:
+      super().__init__(cliopts.settings, QSettings.IniFormat)
+    elif cliopts.local:
+      super().__init__(str(DATA_DIR / 'amphetype.ini'), QSettings.IniFormat)
+    else:
+      super().__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
 
     # Set some runtime defaults here.
-    
-    try:
-      _dbname = getpass.getuser() or "user"
-    except: # Docs just say "otherwise, an exception is raised."
-      _dbname = "user"
 
-    pth = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
-    if pth:
-      Path(pth).mkdir(parents=True, exist_ok=True)
+    if cliopts.database:
+      _dbname = cliopts.database
+    elif cliopts.local:
+      _dbname = str(DATA_DIR / get_default_db_name())
     else:
-      pth = str(self.DATA_DIR)
+      pth = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
+      if pth:
+        pth = Path(pth)
+        pth.mkdir(parents=True, exist_ok=True)
+      else:
+        pth = DATA_DIR
+      _dbname = str(pth / get_default_db_name())
     
-    self.defaults['db_name'] = os.path.join(pth, _dbname + '.db')
+    self.defaults['db_name'] = _dbname
 
-    if not QApplication.instance():
-      self.defaults['qt_style'] = '???'
-    else:
-      self.defaults['qt_style'] = QApplication.instance().style().objectName().lower()
+    assert QApplication.instance()
+    self.defaults['qt_style'] = QApplication.instance().style().objectName().lower()
 
   def get(self, k):
     return self.value(k, self.defaults[k], type=type(self.defaults[k]))

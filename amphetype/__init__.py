@@ -1,2 +1,2 @@
-from ._version import __version__
 
+from amphetype.meta import *

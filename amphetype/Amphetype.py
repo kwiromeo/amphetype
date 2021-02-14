@@ -1,33 +1,33 @@
 
 
-from PyQt5.QtWidgets import *
 import sys
+from amphetype.meta import *
 
-# Do this first of all.
+# The order of the code and imports here is important (and a kludge).
+# Due to being young and stupid I made the module files do weird
+# initialization stuff on import, and some of them depend on each
+# other.
+
+# Init QT and set appname.
+from PyQt5.QtWidgets import *
 app = QApplication(sys.argv)
 app.setApplicationName('amphetype')
 
-# Set up logging.
+# Initialize logging (XXX: is this used anymore?)
 import logging as log
 log.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Import Config.py; this will do argument parsing and set up the
+# global var "Settings".
+from amphetype.Config import Settings
+
+# Only AFTER settings has been initialized, import database:
+from amphetype.Data import DB
+
+# After this we can do whatever we want.
 
 import os
 from pathlib import Path
-
-# Get command-line --database argument before importing
-# modules which count on database support
-from amphetype.Config import Settings
-
-import optparse
-opts = optparse.OptionParser()
-opts.add_option("-d", "--database", metavar="FILE", help="use database FILE")
-v = opts.parse_args()[0]
-
-if v.database is not None:
-  Settings.set('db_name', v.database)
-
-from amphetype.Data import DB
 from amphetype.Quizzer import Quizzer
 from amphetype.StatWidgets import StringStats
 from amphetype.TextManager import TextManager

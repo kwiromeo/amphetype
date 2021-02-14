@@ -1,22 +1,50 @@
+* Warning
 
-* OSX build: https://code.google.com/archive/p/amphetype/issues/7
-** also need builds for any platform, really.
-* DONE text replacements / unicode translations: https://code.google.com/archive/p/amphetype/issues/15 ; https://code.google.com/archive/p/amphetype/issues/19 ; https://code.google.com/archive/p/amphetype/issues/21
-* alt+backspace => delete word: https://code.google.com/archive/p/amphetype/issues/18
-* DONE cli for database: sort of https://code.google.com/archive/p/amphetype/issues/23
-** TODO needs documentation
-** TODO improve this to actual profiles: more user friendly
-* CANCELLED pause mode: https://code.google.com/archive/p/amphetype/issues/2
-** think this is more hassle than worth
-* text navigation: https://code.google.com/archive/p/amphetype/issues/4
-* RTL language support: https://code.google.com/archive/p/amphetype/issues/9
-* random Wikipedia articles: https://code.google.com/archive/p/amphetype/issues/16
-** cool blingy feature but possibly too much hassle. would add several new dependencies.
-* DONE make native default: https://code.google.com/archive/p/amphetype/issues/17
-* DONE CSS theme support
-* texts per day display: https://code.google.com/archive/p/amphetype/issues/20
-* Bug? Why is welcome shown for non-empty db? https://code.google.com/archive/p/amphetype/issues/22
-* allow errors & adjacent errors considered the same error?: github user lalopmak
-* https://github.com/sommerc/pyqt-stylesheets/tree/master/pyqtcss/src/dark_blue and https://doc.qt.io/qt-5/resources.html
-* DONE Pip package / upload to PyPi
-* Locale support? Switching locales. (Minor feature because would really only affect number conversion and formatting and such.)
+GitLab's ORG support is half-baked. Do not view this file there. Get Emacs.
+
+* Older ideas
+** TODO OSX build: https://code.google.com/archive/p/amphetype/issues/7
+*** also need builds for any platform, really.
+** DONE text replacements / unicode translations: https://code.google.com/archive/p/amphetype/issues/15 ; https://code.google.com/archive/p/amphetype/issues/19 ; https://code.google.com/archive/p/amphetype/issues/21
+** TODO alt+backspace => delete word: https://code.google.com/archive/p/amphetype/issues/18
+** DONE cli for database: sort of https://code.google.com/archive/p/amphetype/issues/23
+*** PROGRESS needs (more) documentation
+*** TODO improve this to actual profiles: more user friendly
+** CANCELLED pause mode: https://code.google.com/archive/p/amphetype/issues/2
+think this is more hassle than worth
+** TODO text navigation: https://code.google.com/archive/p/amphetype/issues/4
+
+This one would be nice to implement.
+
+** RTL language support: https://code.google.com/archive/p/amphetype/issues/9
+
+Hmm, how do I do testing on this one? I have no idea when/if RTL looks right or not?
+
+** random Wikipedia articles: https://code.google.com/archive/p/amphetype/issues/16
+
+cool blingy feature but possibly too much hassle. would add several new dependencies.
+
+** DONE make native default: https://code.google.com/archive/p/amphetype/issues/17
+** DONE CSS theme support
+*** TODO make a "large text" normal/dark theme?
+*** https://github.com/sommerc/pyqt-stylesheets/tree/master/pyqtcss/src/dark_blue and https://doc.qt.io/qt-5/resources.html
+** TODO make interaction with source texts better (easier/more intuitive delete, preview, et cetera)
+
+Has been suggested from a few different sources.
+
+** texts per day display: https://code.google.com/archive/p/amphetype/issues/20
+** Bug? Why is welcome shown for non-empty db? https://code.google.com/archive/p/amphetype/issues/22
+Haven't seen this one happen to me. No idea currently.
+** allow errors & adjacent errors considered the same error?: github user lalopmak
+Only relevant for some "allow errors" mode? Not a big fan of "allow
+errors" mode and it's hard to implement correctly.
+** DONE possibility to run amphetype portably (personal email suggestion from DreymaR)
+* Newer ideas
+** DONE Pip package / upload to PyPi
+** Locale support? Switching locales.
+
+Minor feature because would really only affect number conversion and formatting and such.
+** TODO make & use CHANGELOG
+** TODO Make main text visually change color as you type it
+* Blue Sky
+** make python package sane (QT / initialization on import)
