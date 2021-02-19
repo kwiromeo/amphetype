@@ -51,7 +51,7 @@ Note that Amphetype requires Python 3.6+.
 
 ## Windows
 
-Installer coming.
+Check out the releases for an installer.
 
 ## MacOS
 

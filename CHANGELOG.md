@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 - 2021-02-19
+
+Made an executive decision to call this version 1.0, even though it's
+arbitrary. First version of the resurrected project with a Windows
+installer.
 
 ### Changed
 - Resurrected old project from Python 2.

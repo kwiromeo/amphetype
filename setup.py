@@ -46,7 +46,7 @@ setup(
   zip_safe=False, # Because we need data/ to be regular files.
   # include_package_data=True,
   entry_points={
-    'gui_scripts': ['amphetype = amphetype.Amphetype:main'],
+    'gui_scripts': ['amphetype = amphetype.main:main_normal'],
   },
   package_data={
     "amphetype": [

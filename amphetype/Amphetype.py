@@ -125,15 +125,4 @@ set_qt_css(Settings.get('qt_css'))
 Settings.signal_for('qt_style').connect(app.setStyle)
 app.setStyle(Settings.get('qt_style'))
 
-def main():
-  w = TyperWindow()
-  w.show()
-  r = app.exec_()
-  DB.commit()
-  return r
-
-
-if __name__ == '__main__':
-  main()
-
 
