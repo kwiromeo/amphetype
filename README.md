@@ -1,5 +1,5 @@
 
-# Amphetype: Resurrected
+# Amphetype
 
 Amphetype is an advanced typing practice program.
 
@@ -8,20 +8,21 @@ Features include:
 * Type your favorite novel!
 
   One of the core ideas behind Amphetype was to not just use boring
-  "stock texts" for typing practice, but to allow me to type texts I
-  actually want to read as well. So one feature is the ability to
+  "stock texts" for typing practice, but to allow me to practice on
+  texts that I actually want to read. So one feature is the ability to
   import whole novels (for example from [Project
   Gutenberg](https://www.gutenberg.org/)) and have Amphetype
-  automatically generate bite-sized lessons from the text. (When I was
-  learning the [Colemak](https://colemak.com/) keyboard layout, I
-  typed _The Metamorphosis_ by Franz Kafka!)
+  automatically generate bite-sized lessons from the text. For
+  example, when I was learning the [Colemak](https://colemak.com/)
+  keyboard layout, I typed _The Metamorphosis_ by Franz Kafka!
   
 * Typing statistics.
 
-  It provides the basic typing statistics (accuracy and WPM), as well
-  as identifying the keys/trigrams/words that break your flow and what
-  impact these "viscous" combinations have on your typing speed
-  overall. Together with graphs over time and so forth.
+  It provides the basic typing statistics (accuracy and WPM) across
+  keys, trigrams, and words. It also tries to identify parts that
+  break your flow and what impact these "viscous" combinations have on
+  your typing speed overall. It also shows a graphs of progress over
+  time.
   
 * Generate lessons from past statistics.
 
@@ -32,37 +33,60 @@ Features include:
 * Layout-agnostic.
 
   Amphetype doesn't care _what_ keyboard or layout you use, it only
-  looks at _how_ you use it. As such it's likely not suitable for
-  complete typing beginners who need an on-screen keyboard.
+  looks at _how_ you use it.
 
-* Highly customizable with regard to look and feel.
+* Highly customizable in functionality, looks, and feel.
 
 # Installing
 
-I could use some help in generating installers for MacOS and Windows.
+## GNU/Linux
 
-But for now the easiest and recommended way to install is to make sure
-your system has Python (version 3.6+ required) installed and then
-install via `pip` or `pip3`:
+Install via pip:
 
-``` bash
-$ pip install amphetype
+```bash
+$ pip install --user amphetype
 ```
 
-This should give you an executable command `amphetype`, so simply run
-it:
+Note that Amphetype requires Python 3.6+.
 
-``` bash
-$ amphetype
-```
+## Windows
+
+Installer coming.
+
+## MacOS
+
+Here I will pretty much just copy instructions out of Google, because
+I have no experience with OSX.
+
+(If you're an experienced user, the Linux instructions above
+are probably enough.)
+
+1. First install [Homebrew](https://brew.sh/).
+2. Then (still in a terminal) install Python 3:
+   ```bash
+   $ brew install python
+   ```
+3. Hopefully you will now have a command called `pip` (or `pip3`?), so
+   use that like in the Linux instructions. If it doesn't work, try something like this:
+   ```bash
+   $ python3 -m pip install amphetype
+   ```
+4. Run the program:
+   ```bash
+   $ amphetype
+   ```
+   (Might also work to find it with Finder? I don't really know.)
 
 # Resurrected?
 
 Yes, I originally made this program 12 years ago
 [here](https://code.google.com/archive/p/amphetype/). I've updated it
-somewhat, included some features that were requested back then, and
-upgraded the code to use Python 3 and Qt5 (instead of Python 2 and
+somewhat and implemented some features that were requested back then,
+and upgraded the code to use Python 3 and Qt5 (instead of Python 2 and
 Qt4).
+
+Google Code has gone read-only though, so I am unable to do anything
+about what's shown there.
 
 # Other Links
 
@@ -78,7 +102,7 @@ My own inspiration for switching to a different keyboard layout and why I made A
 
 # Screenshots
 
-**TODO**.
+**TODO**: make actually attractive screenshots.
 
 Using various themes:
 
