@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 - 2021-02-20
+
+No change, just a re-upload to PyPI as previous didn't contain data
+files.
+
 ## 1.0.0 - 2021-02-19
 
 Made an executive decision to call this version 1.0, even though it's
