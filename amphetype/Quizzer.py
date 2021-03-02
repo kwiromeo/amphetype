@@ -34,6 +34,7 @@ def force_ascii(txt):
       QMessageBox.information(None, "Missing Module", "Module <code>translitcodec</code> needed to translate unicode to ascii.\nTry running <code>pip install translitcodec</code>.")
       _bothered = True
     return txt.encode('ascii', 'ignore')
+  
 
 class Typer(QTextEdit):
   sigDone = pyqtSignal()
@@ -66,23 +67,6 @@ class Typer(QTextEdit):
       'right': f"QTextEdit {{ background-color: {Settings.get('quiz_right_bg')}; color: {Settings.get('quiz_right_fg')} }}",
       'inactive': '' }
     
-    self.palettes = {
-      'wrong': QPalette(Qt.black,
-                Qt.lightGray,
-                Qt.lightGray, Qt.darkGray, Qt.gray,
-                Settings.getColor("quiz_wrong_fg"), Qt.white, Settings.getColor("quiz_wrong_bg"),
-                Qt.yellow),
-      'right': QPalette(Qt.black,
-                Qt.lightGray,
-                Qt.lightGray, Qt.darkGray, Qt.gray,
-                Settings.getColor("quiz_right_fg"), Qt.yellow, Settings.getColor("quiz_right_bg"),
-                Qt.yellow),
-      'inactive': QPalette(Qt.black,
-                 Qt.lightGray,
-                 Qt.lightGray, Qt.darkGray, Qt.gray,
-                 Qt.black, Qt.white, Qt.lightGray,
-                 Qt.yellow)}
-    # self.setPalette(self.palettes['inactive'])
     self.setStyleSheet(self._css['inactive'])
 
   def setTarget(self,  text):
@@ -174,11 +158,13 @@ class Typer(QTextEdit):
       self.when[0] = self.when[1] - self.times[0]
     return self.when[self.where]-self.when[0], self.where, self.times, self.mistake, self.getMistakes()
 
+
+  
 class Quizzer(QWidget):
   wantReview = pyqtSignal('PyQt_PyObject')
   wantText = pyqtSignal()
   statsChanged = pyqtSignal()
-  
+
   def __init__(self, *args):
     super(Quizzer, self).__init__(*args)
 

@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 from amphetype.meta import *
 
+from amphetype.settings import FSettings
 
 # First of all parse argument for setting file location.
 import argparse
@@ -50,7 +51,7 @@ class SettingsMeta(type(QObject)):
     return super().__new__(cls, name, bases, ns)
 
 
-class AmphSettings(QSettings, metaclass=SettingsMeta):
+class AmphSettings(FSettings, metaclass=SettingsMeta):
   change = pyqtSignal()
   DATA_DIR = DATA_DIR
 
@@ -118,11 +119,11 @@ class AmphSettings(QSettings, metaclass=SettingsMeta):
 
   def __init__(self, *args):
     if cliopts.settings:
-      super().__init__(cliopts.settings, QSettings.IniFormat)
+      super().__init__(filename=cliopts.settings)
     elif cliopts.local:
-      super().__init__(str(DATA_DIR / 'amphetype.ini'), QSettings.IniFormat)
+      super().__init__(filename=str(DATA_DIR / 'amphetype.ini'))
     else:
-      super().__init__(QSettings.IniFormat, QSettings.UserScope, "amphetype", "amphetype")
+      super().__init__(appname='amphetype')
 
     # Set some runtime defaults here.
 
@@ -403,6 +404,6 @@ class PreferenceWidget(QWidget):
     self.font_lbl.setFont(qf)
 
 
-
+# TODO: remove this
 Settings = AmphSettings()
 

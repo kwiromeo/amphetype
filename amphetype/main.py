@@ -3,7 +3,7 @@
 def main_normal():
   import amphetype.Amphetype as A
   
-  w = A.TyperWindow()
+  w = A.AmphetypeWindow()
   w.show()
   r = A.app.exec_()
   A.DB.commit()

@@ -9,33 +9,33 @@ from amphetype.Config import Settings
 
 
 def trimmed_average(total, series):
-    s = 0.0
-    n = 0
+  s = 0.0
+  n = 0
 
-    start = 0
-    cutoff = total // 3
-    while cutoff > 0:
-      cutoff -= series[start][1]
-      start += 1
-    if cutoff < 0:
-      s += -cutoff * series[start-1][0]
-      n += -cutoff
+  start = 0
+  cutoff = total // 3
+  while cutoff > 0:
+    cutoff -= series[start][1]
+    start += 1
+  if cutoff < 0:
+    s += -cutoff * series[start-1][0]
+    n += -cutoff
 
-    end = len(series)-1
-    cutoff = total // 3
-    while cutoff > 0:
-      cutoff -= series[end][1]
-      end -= 1
-    if cutoff < 0:
-      s += -cutoff * series[end+1][0]
-      n += -cutoff
+  end = len(series)-1
+  cutoff = total // 3
+  while cutoff > 0:
+    cutoff -= series[end][1]
+    end -= 1
+  if cutoff < 0:
+    s += -cutoff * series[end+1][0]
+    n += -cutoff
 
-    while start <= end:
-      s += series[start][1] * series[start][0]
-      n += series[start][1]
-      start += 1
+  while start <= end:
+    s += series[start][1] * series[start][0]
+    n += series[start][1]
+    start += 1
 
-    return s/n
+  return s/n
 
 
 class Statistic(list):
@@ -188,6 +188,27 @@ create view text_source as
       return v[0][0]
     self.execute('insert into source (name,discount) values (?,?)', (source, lesson))
     return self.getSource(source)
+
+  def getTextContext(self, textid):
+    texts = sorted(DB.fetchall("""
+select T.rowid,T.id,T.source,T.text
+  from text as T, (select rowid,source from text where id=?) as T2
+  where T.disabled is null and
+    T.source = T2.source
+  order by abs(T.rowid - T2.rowid) asc
+  limit 3""", (textid,)))
+    if textid not in [t[1] for t in texts]:
+      return (None, None, None)
+    if len(texts) == 1:
+      return (None, texts[0][1:], None)
+
+    if texts[0][1] == textid:
+      return (None, texts[0][1:], texts[1][1:])
+    if texts[-1][1] == textid:
+      return (texts[-2][1:], texts[-1][1:], None)
+    
+    assert len(texts) == 3 and texts[1][1] == textid
+    return (texts[0][1:], texts[1][1:], texts[2][1:])
 
 
 

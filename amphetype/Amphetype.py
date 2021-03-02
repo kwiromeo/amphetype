@@ -10,8 +10,12 @@ from amphetype.meta import *
 
 # Init QT and set appname.
 from PyQt5.QtWidgets import *
-app = QApplication(sys.argv)
-app.setApplicationName('amphetype')
+class AmphetypeApp(QApplication):
+  def __init__(self, *args, **kwargs):
+    super().__init__(sys.argv, *args, applicationName='amphetype', **kwargs)
+
+
+app = AmphetypeApp()
 
 # Initialize logging (XXX: is this used anymore?)
 import logging as log
@@ -20,9 +24,11 @@ log.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
 # Import Config.py; this will do argument parsing and set up the
 # global var "Settings".
 from amphetype.Config import Settings
+app.settings = Settings
 
 # Only AFTER settings has been initialized, import database:
 from amphetype.Data import DB
+app.DB = DB
 
 # After this we can do whatever we want.
 
@@ -36,13 +42,15 @@ from amphetype.Config import PreferenceWidget
 from amphetype.Lesson import LessonGenerator
 from amphetype.Widgets.Database import DatabaseWidget
 
+from amphetype.typer import TyperWindow
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 
-class TyperWindow(QMainWindow):
+class AmphetypeWindow(QMainWindow):
   def __init__(self, *args):
-    super(TyperWindow, self).__init__(*args)
+    super().__init__(*args)
 
     self.setWindowTitle("Amphetype")
 
@@ -53,6 +61,9 @@ class TyperWindow(QMainWindow):
 
     quiz = Quizzer()
     tabs.addTab(quiz, "Typer")
+
+    tw = TyperWindow()
+    tabs.addTab(tw, "Typer2 (beta)")
 
     tm = TextManager()
     quiz.wantText.connect(tm.nextText)
@@ -78,6 +89,12 @@ class TyperWindow(QMainWindow):
     quiz.wantReview.connect(lg.wantReview)
     lg.newReview.connect(tm.newReview)
     tabs.addTab(lg, "Lesson Generator")
+
+    tm.setText.connect(tw.setText)
+    ph.setText.connect(tw.setText)
+    tw.wantText.connect(tm.nextText)
+    tw.wantReview.connect(lg.wantReview)
+    tw.statsChanged.connect(ph.updateData)
 
     dw = DatabaseWidget()
     tabs.addTab(dw, "Database")

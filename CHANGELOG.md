@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Brand new typing interface with lots of added features.
+- New input modes: insert mode vs overwrite mode.
+- New input modes: strict mode vs lenient mode.
+- Option for preventing backspacing over correct input.
+- Show context around lesson text.
+- Progress bar for lesson progress.
+
+### Changed
+- Typing now occurs in the same place as the text is.
+- Alt/Ctrl/Meta + backspace now deletes back one word.
+- Paragraphs are wrapped in markup and now have some spacing between
+  them.
+
+
 ## 1.0.1 - 2021-02-20
 
 No change, just a re-upload to PyPI as previous didn't contain data
