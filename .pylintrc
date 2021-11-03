@@ -1,0 +1,9 @@
+[format]
+indent-string="  "
+
+variable-naming-style=any
+argument-naming-style=any
+attr-naming-style=any
+class-naming-stle=any
+method-naming-style=any
+inline-naming-style=any

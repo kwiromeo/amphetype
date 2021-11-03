@@ -424,11 +424,14 @@ class TyperWindow(QWidget):
     pre,text,post = self.DB.getTextContext(textid)
     if text is None:
       return self.setDefaultText()
+    pre = '[BEGIN]' if pre is None else pre[2]
+    post = '[END]' if post is None else post[2]
 
-    self._doc.set_text(text[2], prologue=(pre[2] + '\n'), epilogue=('\n' + post[2]))
+    self._doc.set_text(text[2], prologue=(pre + '\n'), epilogue=('\n' + post))
 
   def updateLabel(self):
     text = []
+    text.append("[This beta typer will not collect statistics currently, don't use it!]")
     if self.S['require_space']:
       text.append("Press SPACE to start typing the text.")
     else:

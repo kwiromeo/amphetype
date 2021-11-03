@@ -4,6 +4,8 @@ import platform
 import collections
 import time
 import re
+import sys
+import logging as log
 
 from amphetype.Data import Statistic, DB
 from amphetype.Config import Settings
@@ -13,13 +15,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from amphetype.QtUtil import *
 
-
-if platform.system() == "Windows":
+if sys.hexversion < 0x30a0000 and platform.system() == "Windows":
   # hack hack, hackity hack
   timer = time.clock
   timer()
 else:
-  timer = time.time
+  timer = time.perf_counter
 
 _bothered = False
 def force_ascii(txt):
@@ -159,7 +160,7 @@ class Typer(QTextEdit):
     return self.when[self.where]-self.when[0], self.where, self.times, self.mistake, self.getMistakes()
 
 
-  
+
 class Quizzer(QWidget):
   wantReview = pyqtSignal('PyQt_PyObject')
   wantText = pyqtSignal()
@@ -235,16 +236,23 @@ class Quizzer(QWidget):
 
     def gen_tup(s, e):
       perch = sum(times[s:e])/(e-s)
+      if perch < 1e-7:
+        log.warning("timing for span ({s},{e}) summed to zero or near-zero ({perch}); skipping it")
+        return (None, None, None, None)
       visc = sum([((x-perch)/perch)**2 for x in times[s:e]])/(e-s)
       return (text[s:e], perch, len([_f for _f in mis[s:e] if _f]), visc)
 
     for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, chars-2)]:
+      if tri is None:
+        continue
       stats[tri].append(t, m > 0)
       visc[tri].append(v)
 
     regex = re.compile(r"(\w|'(?![A-Z]))+(-\w(\w|')*)*")
 
     for w, t, m, v in [gen_tup(*x.span()) for x in regex.finditer(text) if x.end()-x.start() > 3]:
+      if w is None:
+        continue
       stats[w].append(t, m > 0)
       visc[w].append(v)
 
@@ -267,6 +275,8 @@ class Quizzer(QWidget):
         (time,viscosity,w,count,mistakes,type,data) values (?,?,?,?,?,?,?)''', vals)
       DB.executemany_('insert into mistake (w,target,mistake,count) values (?,?,?,?)',
           [(now, k[0], k[1], v) for k, v in mistakes.items()])
+
+    DB.commit()
 
     if is_lesson:
       mins = (Settings.get("min_lesson_wpm"), Settings.get("min_lesson_acc"))

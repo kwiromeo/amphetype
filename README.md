@@ -61,21 +61,35 @@ I have no experience with OSX.
 (If you're an experienced user, the Linux instructions above
 are probably enough.)
 
-1. First install [Homebrew](https://brew.sh/).
-2. Then (still in a terminal) install Python 3:
+1. First install [Homebrew](https://brew.sh/) if you don't have it.
+2. Then (still in a terminal) install Python 3, also if you don't have it:
    ```bash
    $ brew install python
    ```
-3. Hopefully you will now have a command called `pip` (or `pip3`?), so
-   use that like in the Linux instructions. If it doesn't work, try something like this:
+3. I've encountered one user who had to manually install `pyqt5`:
    ```bash
-   $ python3 -m pip install amphetype
+   $ brew install pyqt5
    ```
-4. Run the program:
+   Not sure if this is necessary, or indeed if it installs its own Python, thus
+   making step #2 redundant.
+4. Either way, hopefully you will now either:
+   1. Have a command called `pip` (or `pip3`?), so
+      use that like in the Linux instructions:
+      ```bash
+      $ pip install --user amphetype
+      ```
+   2. OR, if not, you should at least have Python
+      so you could try:
+      ```bash
+      $ python3 -m pip install amphetype
+      ```
+      (The command might be `python3.9` or `python3.10` instead of `python3`.)
+5. Run the program:
    ```bash
    $ amphetype
    ```
-   (Might also work to find it with Finder? I don't really know.)
+   (Might also work to find it with Finder? I don't really know! If a OSX dev is willing to write
+   better and less confusing instructions, let me know!)
 
 # Resurrected?
 

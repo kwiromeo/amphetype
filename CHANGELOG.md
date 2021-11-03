@@ -16,7 +16,6 @@
 - Paragraphs are wrapped in markup and now have some spacing between
   them.
 
-
 ## 1.0.1 - 2021-02-20
 
 No change, just a re-upload to PyPI as previous didn't contain data
