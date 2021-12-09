@@ -44,6 +44,12 @@ class DatabaseWidget(QWidget):
         ], #AmphButton("Import", self.importdb), "external DB file"]]],
         self.stats_,
         None,
+        ["DELETE all statistics and results from:",
+         AmphButton('Last Minute', lambda: self.delete_last(60.0)),
+         AmphButton('Last Hour', lambda: self.delete_last(60.0*60.0)),
+         AmphButton('Last 24 Hours', lambda: self.delete_last(60.0*60.0*24.0)),
+         None],
+        None,
         "After heavy use for several months the database can grow quite large since " \
           +"lots of data are generated after every result and it's all stored indefinitely. " \
           +"Here you can group old statistics into larger batches. This will speed up " \
@@ -59,6 +65,15 @@ class DatabaseWidget(QWidget):
 
   def importdb(self):
     pass
+
+  def delete_last(self, delta):
+    threshold = time.time() - delta
+
+    ds = DB.execute('''delete from statistic where w > ?''', (threshold, )).rowcount
+    dm = DB.execute('''delete from mistake where w > ?''', (threshold, )).rowcount
+    dr = DB.execute('''delete from result where w > ?''', (threshold, )).rowcount
+
+    self.stats_.setText(f"Deleted {ds} statistic entries, {dm} mistake entries, {dr} results")
 
   def update(self):
     self.progress_.show()
