@@ -480,10 +480,10 @@ class TyperWindow(QWidget):
     for i in range(len(run)):
       sub = run[i:i+1]
       spc, _, flaw = sub.stats
-      if wpm is None:
+      if spc is None:
         log.info(f"skipping wpm=None statistic: {i=} {sub}")
         continue
-      stats[sub.text].append(wpm, flaw)
+      stats[sub.text].append(spc, flaw)
       visc[sub.text].append((spc / secs_per_char - 1.0)**2)
 
     for sub in run.timed_ngrams(3):
@@ -495,7 +495,6 @@ class TyperWindow(QWidget):
       spc, vc, flaw = sub.stats
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(vc)
-
 
     # time, visc, now, count, mistakes, type, data
 

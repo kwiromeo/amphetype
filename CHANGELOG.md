@@ -9,12 +9,15 @@
 - Option for preventing backspacing over correct input.
 - Show context around lesson text.
 - Progress bar for lesson progress.
+- Buttons for deleting all statistics and results within last minute/hour/day.
 
 ### Changed
 - Typing now occurs in the same place as the text is.
 - Alt/Ctrl/Meta + backspace now deletes back one word.
 - Paragraphs are wrapped in markup and now have some spacing between
   them.
+- Fixed two crashes that could occur.
+- Changed to using perf_counter() -- hopefully leading to better timing data.
 
 ## 1.0.1 - 2021-02-20
 
