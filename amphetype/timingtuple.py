@@ -40,7 +40,9 @@ class datatuple(tuple):
 
 
 class CharEntry():
-  __slots__ = ('char', 'inserts', 'timing', 'mistakes', 'first', 'first_any', 'last')
+  __slots__ = ('char', 'inserts', 'timing',
+               'mistakes', 'first', 'first_any',
+               'last', 'errors')
   
   def __init__(self, char):
     self.char = char
@@ -50,6 +52,7 @@ class CharEntry():
     self.last = None
     self.timing = None
     self.mistakes = 0
+    self.errors = ''
 
   def visited(self):
     return self.first is not None
@@ -178,19 +181,21 @@ class RunStats(datatuple):
 
   @property
   def visc(self):
-    # xs = [t for t in self.timing if t]
-    # if len(xs) < 3:
-    #   return None
-    # mean = sum(xs)/len(xs)
-    # return sum([(x/mean - 1.0)**2 for x in xs])
-
-    # Bad, do something else.
-    return 0.0
+    # Bad, do something else?
+    xs = [t for t in self.timing if t]
+    if len(xs) < 3:
+      return None
+    mean = sum(xs)/len(xs)
+    return sum([(x/mean - 1.0)**2 for x in xs])
 
   def result(self, accuracy=False):
     # print(f'"{self.text}" {self.started=}, {self.duration=}, {self.previous=}, {self.per_sec=}')
     acc = 1.0 - self.faults / len(self) if accuracy else self.faults != 0
     return self.per_sec * 12.0, self.visc, acc
+
+  @property
+  def stats(self):
+    return 1.0 / self.per_sec, self.visc, self.faults != 0
 
   def timed_ngrams(self, n, complete=True):
     for i in range(n, len(self)):
@@ -199,9 +204,9 @@ class RunStats(datatuple):
         yield gram
 
   def timed_words(self, complete=True):
-    for m in re.finditer(r'\w{4,}', self.text):
+    for m in re.finditer(r"\w+(?:['-]\w+)*", self.text):
       word = self[m.start():m.end()]
-      if not complete or word.is_complete():
+      if len(word) >= 4 and (not complete or word.is_complete()):
         yield word
     
 # Speedbumps:

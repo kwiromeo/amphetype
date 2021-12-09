@@ -237,7 +237,7 @@ class Quizzer(QWidget):
     def gen_tup(s, e):
       perch = sum(times[s:e])/(e-s)
       if perch < 1e-7:
-        log.warning("timing for span ({s},{e}) summed to zero or near-zero ({perch}); skipping it")
+        log.warning(f"timing for span ({s},{e}) summed to zero or near-zero ({perch}); skipping it")
         return (None, None, None, None)
       visc = sum([((x-perch)/perch)**2 for x in times[s:e]])/(e-s)
       return (text[s:e], perch, len([_f for _f in mis[s:e] if _f]), visc)

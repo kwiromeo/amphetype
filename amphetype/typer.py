@@ -1,3 +1,4 @@
+import logging as log
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -7,7 +8,10 @@ from amphetype.settings import *
 from amphetype.layout import FStackedLayout, FBoxLayout
 from amphetype.timingtuple import RunStats
 
-from time import perf_counter as timer
+from amphetype.Data import Statistic
+from collections import defaultdict, Counter
+
+from time import (time, perf_counter as timer)
 
 
 RETURN_CHAR = '⏎' # '↵'
@@ -181,10 +185,11 @@ class LessonDocument(QTextDocument):
 
     # Update timing data.
     self._run.visit(correct)
-    
+
     if correct:
       self.progress.emit(self._run.index)
     else:
+      self._run.current.errors += char
       if not lenient:
         self._first_error = Cursor(self.cursor, fixed=True)
 
@@ -363,7 +368,6 @@ class TyperWidget(QTextEdit):
 
 
 
-
 class TyperWindow(QWidget):
   wantReview = pyqtSignal('PyQt_PyObject')
   wantText = pyqtSignal()
@@ -373,9 +377,11 @@ class TyperWindow(QWidget):
     super().__init__(*args, **kwargs)
 
     app = QApplication.instance()
+    self._settings = app.settings
     self.S = app.settings.makeSettings('typer', TyperOptions.defaults)
     self.DB = app.DB
 
+    self._current_lesson = None
     self._typer = TyperWidget(self.S)
     self._label = QLabel()
     self._prog = QProgressBar()
@@ -400,13 +406,6 @@ class TyperWindow(QWidget):
       (self._typer, 1),
       ]))
 
-  # def XXX(self):
-  #   import random
-  #   a = ' '.join([random.choice('prologue is here.'.split()) for _ in range(random.randint(0, 8))])
-  #   b = ' '.join([random.choice('this is a test.'.split()) for _ in range(random.randint(1, 10))])
-  #   c = ' '.join([random.choice("where's the epilogue?".split()) for _ in range(random.randint(0, 8))])
-  #   self._doc.set_text(b, a, c)
-  
   def showEvent(self, evt):
     super().showEvent(evt)
     self._typer.setFocus()
@@ -428,6 +427,7 @@ class TyperWindow(QWidget):
     post = '[END]' if post is None else post[2]
 
     self._doc.set_text(text[2], prologue=(pre + '\n'), epilogue=('\n' + post))
+    self._typer.setFocus()
 
   def updateLabel(self):
     text = []
@@ -443,88 +443,109 @@ class TyperWindow(QWidget):
   def typingDone(self, run):
     self._prog_layout.cycle()
 
-    for x in run.timed_words():
-      # print(x.result())
-      pass
-    for x in run.timed_ngrams(3):
-      # print(x.result())
-      pass
+    # Various sanity tests.
+    if self._current_lesson is None:
+      log.error("typing done with no lesson started?")
+      return
+    if run.per_sec < 1e-6:
+      log.error("run seems to be ~0.0 duration: %s", run)
+      return
 
-    # viscosity = sum([((x-spc)/spc)**2 for x in times]) / chars
+    # print(run)
 
-    # DB.execute('insert into result (w,text_id,source,wpm,accuracy,viscosity) values (?,?,?,?,?,?)',
-    #        (now, self.text[0], self.text[1], 12.0/spc, accuracy, viscosity))
+    now = time()
+    textid, srcid, _ = self._current_lesson
+    wpm, visc, acc = run.result(accuracy=True)
+    secs_per_char = 1.0 / run.per_sec
 
+    self.DB.execute('''
+    insert into result
+    (w, text_id, source, wpm, accuracy, viscosity)
+    values (?,?,?, ?,?,?)
+    ''', (now, textid, srcid,
+          wpm, acc, visc))
+
+    # update last view
     # v2 = DB.fetchone("""select agg_median(wpm),agg_median(acc) from
     #   (select wpm,100.0*accuracy as acc from result order by w desc limit %d)""" % Settings.get('def_group_by'), (0.0, 100.0))
     # self.result.setText("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)"
     #   % ((12.0/spc, 100.0*accuracy) + v2))
 
-    # self.statsChanged.emit()
+    # type (0: char, 1: trigram, 2: word)
 
-    # stats = collections.defaultdict(Statistic)
-    # visc = collections.defaultdict(Statistic)
-    # text = self.text[2]
+    stats = defaultdict(Statistic)
+    visc = defaultdict(Statistic)
 
-    # for c, t, m in zip(text, times, mis):
-    #   stats[c].append(t, m)
-    #   visc[c].append(((t-spc)/spc)**2)
+    # Collect per-char.
+    for i in range(len(run)):
+      sub = run[i:i+1]
+      spc, _, flaw = sub.stats
+      if wpm is None:
+        log.info(f"skipping wpm=None statistic: {i=} {sub}")
+        continue
+      stats[sub.text].append(wpm, flaw)
+      visc[sub.text].append((spc / secs_per_char - 1.0)**2)
 
-    # def gen_tup(s, e):
-    #   perch = sum(times[s:e])/(e-s)
-    #   visc = sum([((x-perch)/perch)**2 for x in times[s:e]])/(e-s)
-    #   return (text[s:e], perch, len([_f for _f in mis[s:e] if _f]), visc)
+    for sub in run.timed_ngrams(3):
+      spc, vc, flaw = sub.stats
+      stats[sub.text].append(spc, flaw)
+      visc[sub.text].append(vc)
 
-    # for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, chars-2)]:
-    #   stats[tri].append(t, m > 0)
-    #   visc[tri].append(v)
-
-    # regex = re.compile(r"(\w|'(?![A-Z]))+(-\w(\w|')*)*")
-
-    # for w, t, m, v in [gen_tup(*x.span()) for x in regex.finditer(text) if x.end()-x.start() > 3]:
-    #   stats[w].append(t, m > 0)
-    #   visc[w].append(v)
-
-    # def type(k):
-    #   if len(k) == 1:
-    #     return 0
-    #   elif len(k) == 3:
-    #     return 1
-    #   return 2
-
-    # vals = []
-    # for k, s in stats.items():
-    #   v = visc[k].median()
-    #   vals.append( (s.median(), v*100.0, now, len(s), s.flawed(), type(k), k) )
-
-    # is_lesson = DB.fetchone("select discount from source where rowid=?", (None,), (self.text[1], ))[0]
-
-    # if Settings.get('use_lesson_stats') or not is_lesson:
-    #   DB.executemany_('''insert into statistic
-    #     (time,viscosity,w,count,mistakes,type,data) values (?,?,?,?,?,?,?)''', vals)
-    #   DB.executemany_('insert into mistake (w,target,mistake,count) values (?,?,?,?)',
-    #       [(now, k[0], k[1], v) for k, v in mistakes.items()])
-
-    # if is_lesson:
-    #   mins = (Settings.get("min_lesson_wpm"), Settings.get("min_lesson_acc"))
-    # else:
-    #   mins = (Settings.get("min_wpm"), Settings.get("min_acc"))
-
-    # if 12.0/spc < mins[0] or accuracy < mins[1]/100.0:
-    #   self.setText(self.text)
-    # elif not is_lesson and Settings.get('auto_review'):
-    #   ws = [x for x in vals if x[5] == 2]
-    #   if len(ws) == 0:
-    #     self.wantText.emit()
-    #     return
-    #   ws.sort(key=lambda x: (x[4],x[0]), reverse=True)
-    #   i = 0
-    #   while ws[i][4] != 0:
-    #     i += 1
-    #   i += (len(ws) - i) // 4
-
-    #   self.wantReview.emit([x[6] for x in ws[0:i]])
-    # else:
-    #   self.wantText.emit()
+    for sub in run.timed_words():
+      spc, vc, flaw = sub.stats
+      stats[sub.text].append(spc, flaw)
+      visc[sub.text].append(vc)
 
 
+    # time, visc, now, count, mistakes, type, data
+
+    vals = []
+    for k, s in stats.items():
+      v = visc[k].median()
+      tp = 2
+      if len(k) == 3:
+        tp = 1
+      elif len(k) == 1:
+        tp = 0
+      vals.append( (s.median(), v*100.0, now, len(s), s.flawed(), tp, k) )
+
+    # print(vals)
+
+    is_lesson = self.DB.fetchone("select discount from source where rowid=?", (None,), (srcid, ))[0]
+
+    if not is_lesson or self._settings.get('use_lesson_stats'):
+      self.DB.executemany_('''
+      insert into statistic
+      (time,viscosity,w,count,mistakes,type,data)
+      values (?,?,?,?,?,?,?)
+      ''', vals)
+
+      mistakes = Counter((c.char, e) for c in run if c.mistakes > 0 for e in c.errors)
+      self.DB.executemany_('''
+      insert into mistake
+      (w,target,mistake,count)
+      values (?,?,?,?)
+      ''', [(now, k[0], k[1], v) for k, v in mistakes.items()])
+
+    self.statsChanged.emit()
+
+    if is_lesson:
+      mins = self._settings.get('min_lesson_wpm'), self._settings.get('min_lesson_acc')
+    else:
+      mins = self._settings.get('min_wpm'), self._settings.get('min_acc')
+
+    if wpm < mins[0] or acc < mins[1]/100.0:
+      self.setText(self._current_lesson)
+    elif not is_lesson and self._settings.get('auto_review'):
+      ws = [x for x in vals if x[5] == 2]
+      if len(ws) == 0:
+        self.wantText.emit()
+        return
+      ws.sort(key=lambda x: (x[4],x[0]), reverse=True)
+
+      u = sum(x[4] != 0 for x in ws)
+      u += (len(ws) - u) // 4
+
+      self.wantReview.emit([x[6] for x in ws[:u]])
+    else:
+      self.wantText.emit()
