@@ -1,11 +1,12 @@
 import logging as log
+# log.root.setLevel(log.INFO)
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from amphetype.settings import *
-from amphetype.layout import FStackedLayout, FBoxLayout
+from amphetype.layout import FStackedLayout, FBoxLayout, FStackedWidget
 from amphetype.timingtuple import RunStats
 
 from amphetype.Data import Statistic
@@ -173,6 +174,9 @@ class LessonDocument(QTextDocument):
       self._run = RunStats.make(self._match_text)
       self.started.emit()
 
+    if self._run.current is None:
+      return
+
     correct = char == self._run.current.char
     should_advance = correct or overwrite
 
@@ -208,7 +212,7 @@ class LessonDocument(QTextDocument):
     self.cursor.insertText(char, style)
     if overwrite:
       self.cursor.deleteChar()
-    if self.cursor.atBlockEnd():
+    if self.cursor.atBlockEnd() and not (self._run and self._run.ending):
       self.cursor.movePosition(QTextCursor.NextCharacter)
 
   def backspace(self, by_word=False, protected=False):
@@ -254,6 +258,8 @@ class TyperOptions(QGroupBox):
     'require_space': True,
     'overwrite_mode': True,
     'limit_backspace': False,
+
+    'show_progress': True,
   }
 
   def __init__(self, S, *args, **kwargs):
@@ -269,10 +275,12 @@ class TyperOptions(QGroupBox):
                 toolTip="""In lenient mode past errors will not block further progress and you can complete a text without fully matching it. This might skew statistics slightly, because errors normally have the biggest impact on typing speed. Note also that combining this with overwrite mode means it's possible to complete a text without having typed every letter which means less statistical data can be collected (last letter <i>must</i> be typed correctly). It's recommended to leave it off unless you have a strong preference."""),
       QCheckBox('Wait for <SPACE> before start',
                 checked=S['require_space'], toggled=S('require_space').set,
-                toolTip="""Require user to press spacebar before accepting input. Note that turning this off means that the first letter, word, and trigraph of every lesson cannot be timed correctly, so they will be discarded."""),
+                toolTip="""Require user to press spacebar before accepting input. Note that turning this off means that the first letter, word, and trigraph of every lesson cannot be timed with 100% accuracy (a median will be used)."""),
       QCheckBox('Prevent backspacing over correct input',
                 checked=S['limit_backspace'], toggled=S('limit_backspace').set,
                 toolTip="""Turning this on will prevent backspace from going back over any correct input. Works best for overwrite mode."""),
+      None,
+      QCheckBox('Show progress bar', checked=S['show_progress'], toggled=S('show_progress').set),
       ]))
 
 
@@ -383,9 +391,15 @@ class TyperWindow(QWidget):
 
     self._current_lesson = None
     self._typer = TyperWidget(self.S)
-    self._label = QLabel()
+    self._label = QLabel(wordWrap=True)
     self._prog = QProgressBar()
-    self._prog_layout = FStackedLayout([self._label, self._prog])
+    self._progw = FStackedWidget([QLabel('Go!'), self._prog])
+    self._prog_layout = FStackedWidget([self._label,
+                                        self._progw,
+                                        ])
+
+    self.S('show_progress').bind_value(self._progw.setCurrentIndex)
+    self.S('require_space').bind_change(self.updateLabel)
 
     doc = LessonDocument()
     doc.started.connect(self._prog_layout.cycle)
@@ -397,8 +411,6 @@ class TyperWindow(QWidget):
     
     self._doc = doc
 
-    self.S('require_space').bind_change(self.updateLabel)
-
     self.setLayout(FBoxLayout([
       [self._prog_layout,
        # QPushButton("test", clicked=self.XXX),
@@ -407,22 +419,22 @@ class TyperWindow(QWidget):
       ]))
 
   def showEvent(self, evt):
-    super().showEvent(evt)
     self._typer.setFocus()
+    return super().showEvent(evt)
 
   def typingReady(self, text):
     self._prog_layout.setCurrentIndex(0)
     self._prog.setMaximum(len(text))
 
   def setDefaultText(self):
-    pass
+    print("setDefaultText() NOT IMPLEMENTED")
 
   def setText(self, txt):
     self._current_lesson = txt
     textid, _, _ = txt
     pre,text,post = self.DB.getTextContext(textid)
     if text is None:
-      return self.setDefaultText()
+      text = txt
     pre = '[BEGIN]' if pre is None else pre[2]
     post = '[END]' if post is None else post[2]
 
@@ -430,16 +442,23 @@ class TyperWindow(QWidget):
     self._typer.setFocus()
     self._prog.setValue(0)
 
-  def updateLabel(self):
+  def updateLabel(self, msg=None):
     text = []
-    text.append("[This beta typer will not collect statistics currently, don't use it!]")
+    # text.append("[This beta typer will not collect statistics currently, don't use it!]")
+    if msg is not None:
+      text.append('<big><b>' + msg + '</b></big>')
+      text.append('')
+
     if self.S['require_space']:
       text.append("Press SPACE to start typing the text.")
     else:
       text.append("Text ready for typing!")
     text.append("Press ESCAPE to cancel at any time.")
-    text.append("Check out the preferences tab for ways to customize input.")
-    self._label.setText('\n'.join(text))
+    text.append("This input widget is BETA and uses a <d>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!")
+    self._label.setText('<br />'.join(text))
+
+  def typingFailed(self, txt):
+    self.updateLabel(txt)
 
   def typingDone(self, run):
     self._prog_layout.cycle()
@@ -448,11 +467,22 @@ class TyperWindow(QWidget):
     if self._current_lesson is None:
       log.error("typing done with no lesson started?")
       return
+
+    med_char = run.median_timing
+
+    if run.per_sec is None or run.visc is None or not med_char:
+      return self.typingFailed("Invalid run? (no stats found)")
     if run.per_sec < 1e-6:
       log.error("run seems to be ~0.0 duration: %s", run)
-      return
+      return self.typingFailed("Invalid run? (~0 duration)")
 
+    # global Q
+    # Q = run
+    # print()
+    # print(''.join(str(c) for c in run))
+    # print()
     # print(run)
+    # print()
 
     now = time()
     textid, srcid, _ = self._current_lesson
@@ -466,11 +496,10 @@ class TyperWindow(QWidget):
     ''', (now, textid, srcid,
           wpm, acc, visc))
 
-    # update last view
-    # v2 = DB.fetchone("""select agg_median(wpm),agg_median(acc) from
-    #   (select wpm,100.0*accuracy as acc from result order by w desc limit %d)""" % Settings.get('def_group_by'), (0.0, 100.0))
-    # self.result.setText("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)"
-    #   % ((12.0/spc, 100.0*accuracy) + v2))
+    # Update last view
+    v2 = self.DB.fetchone("""select agg_median(wpm),agg_median(acc) from
+      (select wpm,100.0*accuracy as acc from result order by w desc limit %d)""" % self._settings.get('def_group_by'), (0.0, 100.0))
+    self.updateLabel("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0*acc) + v2))
 
     # type (0: char, 1: trigram, 2: word)
 
@@ -482,18 +511,24 @@ class TyperWindow(QWidget):
       sub = run[i:i+1]
       spc, _, flaw = sub.stats
       if spc is None:
-        log.info(f"skipping wpm=None statistic: {i=} {sub}")
+        log.info(f"skipping wpm=None char statistic: {i=} {sub}")
         continue
       stats[sub.text].append(spc, flaw)
-      visc[sub.text].append((spc / secs_per_char - 1.0)**2)
+      visc[sub.text].append(sub.median_err(med_char))
 
     for sub in run.timed_ngrams(3):
       spc, vc, flaw = sub.stats
+      if spc is None:
+        log.info(f"skipping wpm=None trigram statistic: {sub}")
+        continue
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(vc)
 
     for sub in run.timed_words():
       spc, vc, flaw = sub.stats
+      if spc is None:
+        log.info(f"skipping wpm=None word statistic: {sub}")
+        continue
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(vc)
 
@@ -502,12 +537,14 @@ class TyperWindow(QWidget):
     vals = []
     for k, s in stats.items():
       v = visc[k].median()
+      if v is not None:
+        v *= 100.0
       tp = 2
       if len(k) == 3:
         tp = 1
       elif len(k) == 1:
         tp = 0
-      vals.append( (s.median(), v*100.0, now, len(s), s.flawed(), tp, k) )
+      vals.append( (s.median(), v, now, len(s), s.flawed(), tp, k) )
 
     # print(vals)
 
@@ -549,3 +586,5 @@ class TyperWindow(QWidget):
       self.wantReview.emit([x[6] for x in ws[:u]])
     else:
       self.wantText.emit()
+
+# Q = None

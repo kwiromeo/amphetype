@@ -71,7 +71,8 @@ class Statistic(list):
 
 class MedianAggregate(Statistic):
   def step(self, val):
-    self.append(val)
+    if val is not None:
+      self.append(val)
 
   def finalize(self):
     return self.median()
@@ -82,11 +83,12 @@ class MeanAggregate(object):
     self.count_ = 0
 
   def step(self, value, count):
-    self.sum_ += value * count
-    self.count_ += count
+    if value is not None and count is not None:
+      self.sum_ += value * count
+      self.count_ += count
 
   def finalize(self):
-    return self.sum_ / self.count_
+    return self.sum_ / self.count_ if self.count_ > 0 else None
 
 class FirstAggregate(object):
   def __init__(self):

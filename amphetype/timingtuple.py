@@ -1,11 +1,13 @@
-
+import logging as log
 from time import perf_counter as timer
 import re
 
 def median(lst):
   lst, n = sorted(lst), len(lst)
+  if not n:
+    return None
   res = lst[n//2]
-  if n & 1:
+  if n % 2 == 0:
     res += lst[n//2+1]
     res /= 2.0
   return res
@@ -118,6 +120,10 @@ class RunStats(datatuple):
     return self[self.index-1]
 
   @property
+  def ending(self):
+    return self.index >= len(self) - 1
+
+  @property
   def text(self):
     return ''.join(self.char)
 
@@ -163,6 +169,7 @@ class RunStats(datatuple):
       self.current.visit(correct, self.previous.last)
     else:
       self.current.visit(correct, self.started)
+    # print(f'visit {self.current=}, {self.started=}, {self.previous=}')
 
   def advance(self, real=True):
     if not real:
@@ -173,7 +180,26 @@ class RunStats(datatuple):
 
     # Interpolate a reasonable start time if one wasn't set.
     if self.started is None and self.is_complete():
-      self.started = self[0].last - median([t for t in self.timing if t])
+      self.fix_start()
+
+  def fix_start(self):
+    if self.started is not None or not self.is_complete():
+      return
+
+    i = 0
+    while i < len(self) and self[i].last is None:
+      i += 1
+
+    med = self.median_timing
+    if i == len(self) or med is None:
+      log.error(f"cannot fixup broken run, all times are invalid:\n{self}")
+      return
+
+    self.started = self[i].last - (i+1) * med
+
+  @property
+  def median_timing(self):
+    return median([t for t in self.timing if t])
 
   @property
   def faults(self):
@@ -182,11 +208,17 @@ class RunStats(datatuple):
   @property
   def visc(self):
     # Bad, do something else?
+    # mean = sum(xs)/len(xs)
+    # return sum([(x/mean - 1.0)**2 for x in xs])
+
+    # Experimental new viscosity.
     xs = [t for t in self.timing if t]
     if len(xs) < 3:
       return None
-    mean = sum(xs)/len(xs)
-    return sum([(x/mean - 1.0)**2 for x in xs])
+    return self.median_err(median(xs))
+
+  def median_err(self, m):
+    return sum([(max(0, x.timing - m))**2 for x in self if x.timing])
 
   def result(self, accuracy=False):
     # print(f'"{self.text}" {self.started=}, {self.duration=}, {self.previous=}, {self.per_sec=}')
@@ -195,7 +227,7 @@ class RunStats(datatuple):
 
   @property
   def stats(self):
-    return 1.0 / self.per_sec, self.visc, self.faults != 0
+    return None if self.per_sec is None else 1.0 / self.per_sec, self.visc, self.faults != 0
 
   def timed_ngrams(self, n, complete=True):
     for i in range(n, len(self)):

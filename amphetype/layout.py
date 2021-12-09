@@ -1,6 +1,35 @@
 
 from PyQt5.QtWidgets import *
 
+
+class FStackedWidget(QStackedWidget):
+  def __init__(self, contents, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+
+    for w in contents:
+      self.add(w)
+
+  def add(self, what):
+    if isinstance(what, str):
+      self.addWidget(QLabel(what))
+    elif isinstance(what, QWidget):
+      self.addWidget(what)
+    else:
+      raise ValueError(f"unknown type {type(what)} added to layout")
+
+  def cycle(self, times=1):
+    self.setCurrentIndex((self.currentIndex() + times) % self.count())
+
+  def showFirst(self):
+    if self.count() > 0:
+      self.setCurrentIndex(0)
+
+  def showLast(self):
+    n = self.count()
+    if n > 0:
+      self.setCurrentIndex(n-1)
+
+
 class FStackedLayout(QStackedLayout):
   def __init__(self, contents, *args, **kwargs):
     super().__init__(*args, **kwargs)

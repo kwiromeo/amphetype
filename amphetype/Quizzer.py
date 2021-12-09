@@ -206,6 +206,10 @@ class Quizzer(QWidget):
     self.typer.setTarget(self.text[2])
     self.typer.setFocus()
 
+  def showEvent(self, evt):
+    self.typer.setFocus()
+    return super().showEvent(evt)
+
   def done(self):
     now = time.time()
     elapsed, chars, times, mis, mistakes = self.typer.getStats()
