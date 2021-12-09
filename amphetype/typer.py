@@ -428,6 +428,7 @@ class TyperWindow(QWidget):
 
     self._doc.set_text(text[2], prologue=(pre + '\n'), epilogue=('\n' + post))
     self._typer.setFocus()
+    self._prog.setValue(0)
 
   def updateLabel(self):
     text = []
