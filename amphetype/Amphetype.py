@@ -38,7 +38,7 @@ from amphetype.Quizzer import Quizzer
 from amphetype.StatWidgets import StringStats
 from amphetype.TextManager import TextManager
 from amphetype.Performance import PerformanceHistory
-from amphetype.Config import PreferenceWidget
+from amphetype.Config import GeneralOptions, TyperOptions
 from amphetype.Lesson import LessonGenerator
 from amphetype.Widgets.Database import DatabaseWidget
 
@@ -101,7 +101,9 @@ class AmphetypeWindow(QMainWindow):
     dw = DatabaseWidget()
     tabs.addTab(dw, "Database")
 
-    pw = PreferenceWidget()
+    pw = QTabWidget()
+    pw.addTab(GeneralOptions(), "General Options")
+    pw.addTab(TyperOptions(), "Typer 2 Options (BETA)")
     tabs.addTab(pw, "Preferences")
 
     ab = AboutWidget()

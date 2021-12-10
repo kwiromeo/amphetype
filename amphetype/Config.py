@@ -135,9 +135,9 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
   typer_color_defaults = {
     'inactive_bg': QColor('white'),
     'inactive_fg': QColor('grey'),
-    'untyped_bg': QColor('antiquewhite'),
+    'untyped_bg': QColor('#ffefdc'),
     'untyped_fg': QColor('black'),
-    'correct_bg': QColor('antiquewhite'),
+    'correct_bg': QColor('#fff6eb'),
     'correct_fg': QColor('dimgrey'),
 
     'anyerror_bg': QColor('darksalmon'),
@@ -421,12 +421,18 @@ class TyperInputOptions(QGroupBox):
                 toolTip="""Turning this on will prevent backspace from going back over any correct input. Works best for overwrite mode."""),
       ]))
 
-class TyperOptions(QGroupBox):
-  def __init__(self, S, *args, **kwargs):
-    super().__init__(*args, title='Typer 2 Options', flat=False, **kwargs)
+class TyperOptions(QWidget):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     S = Settings.typer_settings
     C = Settings.typer_colors
     self.setLayout(FBoxLayout([
+      "These options will only work if you've selected <b>Typer 2</b> as your input widget.",
+      "Note that most of the options under <i>General Options</i> will still continue to work for Typer 2.",
+      QLabel("<b>NB!</b> this is pretty beta stuff."
+             """ If you get any crashes or errors, <a href="https://gitlab.com/franksh/amphetype/-/issues">please report here</a>"""
+             " or send me an email (see About).",
+             wordWrap=True, openExternalLinks=True),
       QCheckBox('Show progress bar while typing',
                 checked=S['show_progress'], toggled=S('show_progress').set),
       ["Document background color", S('background_color').button(), None],
@@ -434,11 +440,12 @@ class TyperOptions(QGroupBox):
       ['Line spacing', S('para_lineheight').spin_box(0.6, 4.0, 0.05), None],
       TyperInputOptions(S),
       TyperColors(C),
+      None,
     ]))
 
 class TyperColors(QGroupBox):
   def __init__(self, S, *args, **kwargs):
-    super().__init__(*args, title='Text Colors', **kwargs)
+    super().__init__(*args, title='Text Colors', flat=False, **kwargs)
     self.setLayout(FBoxLayout([
       [("Inactive surrounding text", 1),
        S('inactive_fg').button('Text'),
@@ -464,29 +471,24 @@ class TyperColors(QGroupBox):
 
 
 
-
-class PreferenceWidget(QWidget):
-  def __init__(self):
-    super(PreferenceWidget, self).__init__()
+class GeneralOptions(QWidget):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
 
     self.font_lbl = QLabel()
-
     self.style_box = SettingsCombo('qt_style', [(x.lower(), x.lower()) for x in QStyleFactory.keys()])
 
     self.setLayout(AmphBoxLayout([
       ["Typer font is", self.font_lbl, AmphButton("Change...", self.setFont), None],
-      ["QT5 style is", self.style_box, 'and CSS theme is', SelectCSSBox(), None],
       None,
       ["Input widget", SettingsCombo('which_typer', ['Typer 1.0: copy text', 'Typer 2.0 (beta): write in the text itself']), None],
-      None,
-      TyperOptions(Settings.typer_settings),
       None,
       [SettingsCheckBox("text_force_ascii", 'Force unicode to plain ASCII'), ('(‘fancy’ “quotes” → "normal" quotes, <code>æ</code> → <code>ae</code>, etc.)', 1)],
       SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts.",
                        toolTip="""Automatically create post-lesson reviews if you didn't meet the WPM/accuracy criteria set on the <b>Sources</b> tab."""),
       SettingsCheckBox('show_last', "Show last result(s) above text in the Typer."),
       SettingsCheckBox('use_lesson_stats', "Save key/trigram/word statistics from generated lessons."),
-      SettingsCheckBox('req_space', "Make SPACE mandatory before each session (Typer 1)",
+      SettingsCheckBox('req_space', "Make SPACE mandatory before each session (Typer 1 ONLY)",
                         toolTip="""<b></b>This is generally recommended because otherwise the timing of the very first characer has to be inferred artificially."""),
       None,
       [AmphGridLayout([
@@ -507,7 +509,9 @@ class PreferenceWidget(QWidget):
       ["When grouping by sitting on the Performance tab, consider results more than",
         SettingsEdit('minutes_in_sitting'), "minutes away to be part of a different sitting.", None],
       ["Group by", SettingsEdit('def_group_by'), "results when displaying last scores and showing last results on the Typer tab.", None],
-      ["When smoothing out the graph, display a running average of", SettingsEdit('dampen_average'), "values", None]
+      ["When smoothing out the graph, display a running average of", SettingsEdit('dampen_average'), "values", None],
+      None,
+      ["QT5 style is", self.style_box, 'and CSS theme is', SelectCSSBox(), None],
     ]))
 
     self.updateFont()
