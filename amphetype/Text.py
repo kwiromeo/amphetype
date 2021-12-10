@@ -1,3 +1,5 @@
+if __name__ == '__main__':
+  import amphetype.Amphetype
 
 import re
 import codecs
@@ -53,9 +55,10 @@ class LessonMiner(QObject):
     super(LessonMiner, self).__init__()
     #print time.clock()
     with codecs.open(fname, "r", "utf_8_sig") as f:
-      self.paras = self.paras(f)
+      self.paras = self.para_split(f)
     self.lessons = None
     self.min_chars = Settings.get('min_chars')
+    self._break_sentences = Settings.get('break_sentences')
 
   def doIt(self):
     self.lessons = []
@@ -65,7 +68,7 @@ class LessonMiner(QObject):
     for p in self.paras:
       if len(backlog) > 0:
         backlog.append(None)
-      for s in p:
+      for s in to_lessons(iter(p)) if self._break_sentences else p:
         backlog.append(s)
         backlen += len(s)
         if backlen >= self.min_chars:
@@ -77,7 +80,6 @@ class LessonMiner(QObject):
       self.lessons.append(self.popFormat(backlog))
 
   def popFormat(self, lst):
-    #print lst
     ret = []
     p = []
     while len(lst) > 0:
@@ -96,7 +98,7 @@ class LessonMiner(QObject):
       self.doIt()
     return iter(self.lessons)
 
-  def paras(self, f):
+  def para_split(self, f):
     p = []
     ps = []
     for l in f:
@@ -111,32 +113,60 @@ class LessonMiner(QObject):
     return ps
 
 
+def find_relative(s, c, idx):
+  """Given a string `s` and a char/substring `c`, find a location of `c` that is
+  as close as possible to `idx`.
+
+  Returns -1 if no `c` is found in `s`.
+
+  """
+  a, b = s.find(' ', idx), s.rfind(' ', idx)
+  if a == -1:
+    return b
+  if b == -1:
+    return a
+  return min((a, b), key=lambda x: abs(x-idx))
+
+
+def split_sentence(s, sweet_spot):
+  """Generator that break sentence `s` into pieces (on spaces and linebreaks) that
+  are around `sweet_spot` in length.
+
+  """
+  while len(s) > sweet_spot:
+    idx = find_relative(s.replace('\n', ' '), ' ', sweet_spot)
+    if idx == -1:
+      break
+    yield s[:idx]
+    s = s[idx+1:]
+  if s:
+    yield s
+
 def to_lessons(sentences):
   backlog = []
   backlen = 0
-  min_chars = Settings.get('min_chars')
-  max_chars = Settings.get('max_chars')
-  sweet_size = int(1.618034*(min_chars + max_chars)) # Golden ratio.
+  # Sanity/robustness.
+  min_chars = max(Settings.get('min_chars'), 1)
+  max_chars = min(Settings.get('max_chars'), 99999)
+  if min_chars > max_chars:
+    min_chars, max_chars = max_chars, min_chars
+
+  # This is a little arbitrary, and just aesthetics, but if a sentence is so
+  # long that its ratio to the "total range" exceeds the golden ratio, then it
+  # will be broken up. Otherwise we prefer to leave sentences alone and treat
+  # them as atomic units.
+  sweet_spot = min_chars + int((max_chars - min_chars) / 1.618033988749895)
 
   for s in sentences:
-    ssplit = []
-    while len(s) > sweet_size:
-      idx = s.find(' ', sweet_size)
-      if idx == -1:
-        break
-      else:
-        ssplit.append(s[:idx])
-        s = s[idx+1:]
-    ssplit.append(s)
-    for xs in ssplit:
-      backlog.append(xs)
-      backlen += len(xs)
+    for part in split_sentence(s, sweet_spot):
+      backlog.append(part)
+      backlen += len(part)
       if backlen >= min_chars:
-        yield ' '.join(backlog)
+        yield ' '.join(backlog) # XXX: French 2-space etc.?
         backlog = []
         backlen = 0
   if backlen > 0:
-    yield ' '.join(backlog)
+    yield ' '.join(backlog) # XXX: French 2-space etc.?
 
 
 

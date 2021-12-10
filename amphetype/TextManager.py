@@ -1,7 +1,5 @@
 
-
-
-#import psyco
+import logging as log
 import os.path as path
 import time
 import hashlib
@@ -159,7 +157,11 @@ Good luck!""")
     for x in map(str, files):
       self.progress.setValue(0)
       fname = path.basename(x)
-      lm = LessonMiner(x)
+      try:
+        lm = LessonMiner(x)
+      except:
+        log.error(f"failed to process file {fname}!")
+        continue
       lm.progress[int].emit(self.progress.setValue)
       self.addTexts(fname, lm, update=False)
 

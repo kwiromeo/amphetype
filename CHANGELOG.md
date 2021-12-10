@@ -24,6 +24,8 @@
   them.
 - Changed to using perf_counter() -- hopefully leading to better timing data.
 - Colors are more configurable (Typer 2).
+- Added option to break sentences when importing text.
+- Min/max lesson size now actually works more like expected.
 
 ## 1.0.1 - 2021-02-20
 

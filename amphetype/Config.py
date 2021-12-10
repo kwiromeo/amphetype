@@ -68,6 +68,7 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     "history": 30.0,
     "min_chars": 220,
     "max_chars": 600,
+    "break_sentences": False,
     "lesson_stats": 0, # show text/lesson in perf -- not used anymore
     "perf_group_by": 0,
     "perf_items": 100,
@@ -504,7 +505,8 @@ class GeneralOptions(QWidget):
         SettingsEdit("history"), "days.", None],
       ["Try to limit texts and lessons to between", SettingsEdit("min_chars"),
         "and", SettingsEdit("max_chars"), "characters.", None],
-      ["When selecting easy/difficult texts, scan a sample of",
+      [SettingsCheckBox('break_sentences', "Break long sentences when importing external text."), None],
+      ["When selecting easy/difficult texts, pick the best from a sample of",
         SettingsEdit('num_rand'), "texts.", None],
       ["When grouping by sitting on the Performance tab, consider results more than",
         SettingsEdit('minutes_in_sitting'), "minutes away to be part of a different sitting.", None],
