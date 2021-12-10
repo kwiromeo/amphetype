@@ -114,7 +114,36 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     #"gen_stats": False,
     "str_clear": 's',
     "str_extra": 10,
-    "str_what": 'e'
+    "str_what": 'e',
+
+    "which_typer": 0,
+  }
+
+  typer_defaults = {
+    'lenient_mode': False,
+    'require_space': True,
+    'overwrite_mode': True,
+    'limit_backspace': False,
+
+    'show_progress': True,
+
+    'para_margin': 6,
+    'para_lineheight': 1.0,
+    'background_color': QColor('white'),
+  }
+
+  typer_color_defaults = {
+    'inactive_bg': QColor('white'),
+    'inactive_fg': QColor('grey'),
+    'untyped_bg': QColor('antiquewhite'),
+    'untyped_fg': QColor('black'),
+    'correct_bg': QColor('antiquewhite'),
+    'correct_fg': QColor('dimgrey'),
+
+    'anyerror_bg': QColor('darksalmon'),
+    'anyerror_fg': QColor('black'),
+    'error_bg': QColor('firebrick'),
+    'error_fg': QColor('white'),
   }
 
   def __init__(self, *args):
@@ -145,6 +174,9 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     assert QApplication.instance()
     self.defaults['qt_style'] = QApplication.instance().style().objectName().lower()
 
+    self.typer_settings = self.makeSettings('typer', self.typer_defaults)
+    self.typer_colors = self.makeSettings('colors', self.typer_color_defaults)
+
   def get(self, k):
     return self.value(k, self.defaults[k], type=type(self.defaults[k]))
 
@@ -174,11 +206,10 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
 
 
 
-
 class SettingsColor(AmphButton):
   def __init__(self, key, text):
     self.key_ = key
-    super(SettingsColor, self).__init__(Settings.get(key), self.pickColor)
+    super().__init__(f'{text} {Settings.get(key)}', self.pickColor)
     self.updateIcon()
 
   def pickColor(self):
@@ -189,7 +220,7 @@ class SettingsColor(AmphButton):
     self.updateIcon()
 
   def updateIcon(self):
-    pix = QPixmap(32, 32)
+    pix = QPixmap(64, 32)
     c = Settings.getColor(self.key_)
     pix.fill(c)
     self.setText(Settings.get(self.key_))
@@ -278,8 +309,8 @@ class SettingsCombo(QComboBox):
     #      lambda x: self.setCurrentIndex(self.item2idx[x]))
 
 class SettingsCheckBox(QCheckBox):
-  def __init__(self, setting, *args):
-    super(SettingsCheckBox, self).__init__(*args)
+  def __init__(self, setting, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     self.setCheckState(Qt.Checked if Settings.get(setting) else Qt.Unchecked)
     self.stateChanged[int].connect(lambda x: Settings.set(setting, True if x == Qt.Checked else False))
 
@@ -349,6 +380,91 @@ class SelectCSSBox(QComboBox):
     self.addItem('<select file...>')
 
 
+
+
+
+
+
+from amphetype.layout import FBoxLayout
+
+class TyperInputOptions(QGroupBox):
+  def __init__(self, S, *args, **kwargs):
+    super().__init__(*args, title='Input Mode', flat=False, **kwargs)
+    self.setLayout(FBoxLayout([
+      "Hover over these options for more information.",
+      QCheckBox('Overwrite mode',
+                checked=S['overwrite_mode'],
+                toggled=S('overwrite_mode').set,
+                toolTip="""In <b>overwrite mode</b> input will overwrite text in the buffer, no matter if correct or not. If turned off (insert mode) input will work more like real-world typing, but might be more distracting."""),
+      QCheckBox("Lenient mode (NB! Read tooltip!)",
+                checked=S['lenient_mode'], toggled=S('lenient_mode').set,
+                toolTip="""In <b>lenient mode</b> past errors will not
+                block further progress.
+                This means you can complete texts without fully matching it.<br />
+
+
+                Note that combining this with <b>overwrite mode</b> means you can
+                skip text input without having to type any of the letters.
+                (last letter of the entire text <i>must</i> be typed correctly though).
+                For example the text might expect "this" but you type "tihd" and then continue as normal.
+                In normal circumstances these mistyped "garbage" words will <b>NOT</b> be included in your statistics!
+                This will <b>skew your statistics</b>, because errors normally have the biggest impact
+                on typing speed.
+                This means that less statistical data will be collected.<br />
+
+                It's thus recommended to not combine this with <i>overwrite mode</i> unless you have a strong preference."""),
+      QCheckBox('Wait for <SPACE> before start',
+                checked=S['require_space'], toggled=S('require_space').set,
+                toolTip="""Require user to press <i>spacebar</i> before accepting input. Note that turning this off means that the first letter, word, and trigraph of every lesson cannot be timed with 100% accuracy (a median will be used)."""),
+      QCheckBox('Prevent backspacing over correct input',
+                checked=S['limit_backspace'], toggled=S('limit_backspace').set,
+                toolTip="""Turning this on will prevent backspace from going back over any correct input. Works best for overwrite mode."""),
+      ]))
+
+class TyperOptions(QGroupBox):
+  def __init__(self, S, *args, **kwargs):
+    super().__init__(*args, title='Typer 2 Options', flat=False, **kwargs)
+    S = Settings.typer_settings
+    C = Settings.typer_colors
+    self.setLayout(FBoxLayout([
+      QCheckBox('Show progress bar while typing',
+                checked=S['show_progress'], toggled=S('show_progress').set),
+      ["Document background color", S('background_color').button(), None],
+      ['Paragraph margin (px)', S('para_margin').spin_box(0, 100), None],
+      ['Line spacing', S('para_lineheight').spin_box(0.6, 4.0, 0.05), None],
+      TyperInputOptions(S),
+      TyperColors(C),
+    ]))
+
+class TyperColors(QGroupBox):
+  def __init__(self, S, *args, **kwargs):
+    super().__init__(*args, title='Text Colors', **kwargs)
+    self.setLayout(FBoxLayout([
+      [("Inactive surrounding text", 1),
+       S('inactive_fg').button('Text'),
+       S('inactive_bg').button('Background'),
+       (None, 2)],
+      [("Text to be typed", 1),
+       S('untyped_fg').button('Text'),
+       S('untyped_bg').button('Background'),
+       (None, 2)],
+      [("Correctly typed", 1),
+       S('correct_fg').button('Text'),
+       S('correct_bg').button('Background'),
+       (None, 2)],
+      [("Errors", 1),
+       S('error_fg').button('Text'),
+       S('error_bg').button('Background'),
+       (None, 2)],
+      [("Blocking errors (non-lenient)", 1),
+       S('anyerror_fg').button('Text'),
+       S('anyerror_bg').button('Background'),
+       (None, 2)],
+      ]))
+
+
+
+
 class PreferenceWidget(QWidget):
   def __init__(self):
     super(PreferenceWidget, self).__init__()
@@ -361,17 +477,20 @@ class PreferenceWidget(QWidget):
       ["Typer font is", self.font_lbl, AmphButton("Change...", self.setFont), None],
       ["QT5 style is", self.style_box, 'and CSS theme is', SelectCSSBox(), None],
       None,
-
+      ["Input widget", SettingsCombo('which_typer', ['Typer 1.0: copy text', 'Typer 2.0 (beta): write in the text itself']), None],
+      None,
+      TyperOptions(Settings.typer_settings),
+      None,
       [SettingsCheckBox("text_force_ascii", 'Force unicode to plain ASCII'), ('(‘fancy’ “quotes” → "normal" quotes, <code>æ</code> → <code>ae</code>, etc.)', 1)],
-      [SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts."),
-        ('<a href="http://code.google.com/p/amphetype/wiki/Settings">(help)</a>\n', 1)],
+      SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts.",
+                       toolTip="""Automatically create post-lesson reviews if you didn't meet the WPM/accuracy criteria set on the <b>Sources</b> tab."""),
       SettingsCheckBox('show_last', "Show last result(s) above text in the Typer."),
       SettingsCheckBox('use_lesson_stats', "Save key/trigram/word statistics from generated lessons."),
-      [SettingsCheckBox('req_space', "Make SPACE mandatory before each session"),
-        ('<a href="http://code.google.com/p/amphetype/wiki/Settings">(help)</a>\n', 1)],
+      SettingsCheckBox('req_space', "Make SPACE mandatory before each session (Typer 1)",
+                        toolTip="""<b></b>This is generally recommended because otherwise the timing of the very first characer has to be inferred artificially."""),
       None,
       [AmphGridLayout([
-        ["INPUT COLORS", "Text Color", "Background"],
+        ["TYPER 1 COLORS", "Text Color", "Background"],
         ["Correct Input", SettingsColor('quiz_right_fg', "Foreground"),
             SettingsColor('quiz_right_bg', "Background")],
         ["Wrong Input", SettingsColor('quiz_wrong_fg', "Foreground"),

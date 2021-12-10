@@ -2,6 +2,7 @@
 
 def main_normal():
   import amphetype.Amphetype as A
+  import amphetype.Config as S
   
   w = A.AmphetypeWindow()
   w.show()

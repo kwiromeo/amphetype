@@ -6,7 +6,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from amphetype.settings import *
-from amphetype.layout import FStackedLayout, FBoxLayout, FStackedWidget
+from amphetype.layout import FBoxLayout
+from amphetype.fwidgets import FStackedWidget
 from amphetype.timingtuple import RunStats
 
 from amphetype.Data import Statistic
@@ -41,6 +42,11 @@ def text_style(*args, **kwargs):
     res.setProperty(text_props[k], v)
   return res
 
+def block_style(*args, **kwargs):
+  b = QTextBlockFormat()
+  b.setTopMargin(6.0)
+  b.setBottomMargin(6.0)
+  return b
 
 
 class Cursor(QTextCursor):
@@ -65,7 +71,6 @@ class Cursor(QTextCursor):
     return f'({self.position()})'
 
 
-
 class LessonDocument(QTextDocument):
   style_untyped = text_style(kerning=False,
                              background=QBrush(QColor('antiquewhite')))
@@ -79,6 +84,32 @@ class LessonDocument(QTextDocument):
                              background=QBrush(QColor('antiquewhite')))
   style_inactive = text_style(color=QBrush(QColor('grey')))
 
+  style_block = block_style()
+
+  def onColor(self, var):
+    cat, name = var.objectName().split('/')
+
+    if cat == 'typer':
+      style = self.style_block
+      if name == 'para_margin':
+        m = var.get()
+        style.setTopMargin(m//2)
+        style.setBottomMargin((m+1)//2)
+      elif name == 'para_lineheight':
+        style.setLineHeight(var.get()*100.0, 1)
+      else:
+        raise RuntimeError(f"internal error: unknown option {cat}/{name}")
+    else:
+      attr, fgbg = name.split('_')
+      style = getattr(self, f'style_{attr}')
+      assert style is not None
+      if fgbg == 'bg':
+        style.setBackground(QBrush(var.get()))
+      else:
+        style.setForeground(QBrush(var.get()))
+
+    if self._curtext is not None:
+      self.set_text(*self._curtext)
 
   # Cursor position changed.
   sig_position = pyqtSignal(QTextCursor)
@@ -89,27 +120,22 @@ class LessonDocument(QTextDocument):
   error = pyqtSignal(str)
   progress = pyqtSignal(int)
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, font, *args, **kwargs):
     super().__init__(*args, undoRedoEnabled=False, **kwargs)
-    f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-    f.setPointSize(16)
-    self.setDefaultFont(f)
-
+    # f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+    # f.setPointSize(16)
+    self.setDefaultFont(font)
     self.set_text('default text')
 
-  def block_format(self):
-    b = QTextBlockFormat()
-    b.setTopMargin(6.0)
-    b.setBottomMargin(6.0)
-    return b
-
   def set_text(self, text, prologue='', epilogue=''):
+    self._curtext = (text, prologue, epilogue)
+
     text = text or 'default text'
 
     self.clear()
     
     c = Cursor(self)
-    c.setBlockFormat(self.block_format())
+    c.setBlockFormat(self.style_block)
     
     c.insertText(prologue, self.style_inactive)
     pos = c.position()
@@ -252,38 +278,6 @@ class LessonDocument(QTextDocument):
 ### WIDGET
 
 
-class TyperOptions(QGroupBox):
-  defaults = {
-    'lenient_mode': False,
-    'require_space': True,
-    'overwrite_mode': True,
-    'limit_backspace': False,
-
-    'show_progress': True,
-  }
-
-  def __init__(self, S, *args, **kwargs):
-    super().__init__(*args, title='Input Mode', **kwargs)
-
-    self.setLayout(FBoxLayout([
-      QCheckBox('Overwrite mode',
-                checked=S['overwrite_mode'],
-                toggled=S('overwrite_mode').set,
-                toolTip="""In overwrite mode input will overwrite text in the buffer, no matter if correct or not. If turned off (insert mode) input will work more like real-world typing, but might be more distracting."""),
-      QCheckBox("Lenient mode (NB! Read tooltip!)",
-                checked=S['lenient_mode'], toggled=S('lenient_mode').set,
-                toolTip="""In lenient mode past errors will not block further progress and you can complete a text without fully matching it. This might skew statistics slightly, because errors normally have the biggest impact on typing speed. Note also that combining this with overwrite mode means it's possible to complete a text without having typed every letter which means less statistical data can be collected (last letter <i>must</i> be typed correctly). It's recommended to leave it off unless you have a strong preference."""),
-      QCheckBox('Wait for <SPACE> before start',
-                checked=S['require_space'], toggled=S('require_space').set,
-                toolTip="""Require user to press spacebar before accepting input. Note that turning this off means that the first letter, word, and trigraph of every lesson cannot be timed with 100% accuracy (a median will be used)."""),
-      QCheckBox('Prevent backspacing over correct input',
-                checked=S['limit_backspace'], toggled=S('limit_backspace').set,
-                toolTip="""Turning this on will prevent backspace from going back over any correct input. Works best for overwrite mode."""),
-      None,
-      QCheckBox('Show progress bar', checked=S['show_progress'], toggled=S('show_progress').set),
-      ]))
-
-
 
 class TyperWidget(QTextEdit):
   def __init__(self, settings, *args, text=None, **kwargs):
@@ -302,6 +296,8 @@ class TyperWidget(QTextEdit):
     # settings('lenient_mode').bind_value(self.setLenientMode)
     # settings('require_space').bind_value(self.setRequireSpace)
     settings('overwrite_mode').bind_value(self.setOverwriteMode)
+    settings('background_color').bind_value(
+      lambda v: self.setStyleSheet(f'QTextEdit {{ background-color: "{v.name()}"; }}'))
 
   def setLesson(self, lesson):
     if lesson == self._lesson:
@@ -386,22 +382,33 @@ class TyperWindow(QWidget):
 
     app = QApplication.instance()
     self._settings = app.settings
-    self.S = app.settings.makeSettings('typer', TyperOptions.defaults)
+    self.S = app.settings.typer_settings
     self.DB = app.DB
 
     self._current_lesson = None
     self._typer = TyperWidget(self.S)
-    self._label = QLabel(wordWrap=True)
+    hack = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Ignored)
+    self._label = QLabel(wordWrap=True, sizePolicy=hack)
     self._prog = QProgressBar()
-    self._progw = FStackedWidget([QLabel('Go!'), self._prog])
-    self._prog_layout = FStackedWidget([self._label,
-                                        self._progw,
-                                        ])
+    self._progw = FStackedWidget([QLabel('Type like the wind!'), self._prog])
+    self._prog_layout = FStackedWidget([self._label, self._progw])
 
     self.S('show_progress').bind_value(self._progw.setCurrentIndex)
     self.S('require_space').bind_change(self.updateLabel)
 
-    doc = LessonDocument()
+    # I am so confused. Settings system must have gone through 3 totally different paradigms.
+    self._settings.signal_for("typer_font").connect(self.updateFont)
+
+    doc = LessonDocument(self._settings.getFont('typer_font'))
+
+    for var in self._settings.typer_colors:
+      var.onChange.connect(doc.onColor)
+      doc.onColor(var)
+    for vname in ['para_lineheight', 'para_margin']:
+      var = self._settings.typer_settings(vname)
+      var.onChange.connect(doc.onColor)
+      doc.onColor(var)
+
     doc.started.connect(self._prog_layout.cycle)
     doc.progress.connect(self._prog.setValue)
     doc.ready.connect(self.typingReady)
@@ -412,11 +419,14 @@ class TyperWindow(QWidget):
     self._doc = doc
 
     self.setLayout(FBoxLayout([
-      [self._prog_layout,
+      (self._prog_layout, 0),
        # QPushButton("test", clicked=self.XXX),
-       TyperOptions(self.S)],
-      (self._typer, 1),
+       # TyperOptions(self.S)],
+      (self._typer, 100),
       ]))
+
+  def updateFont(self):
+    self._doc.setDefaultFont(self._settings.getFont('typer_font'))
 
   def showEvent(self, evt):
     self._typer.setFocus()
@@ -476,14 +486,6 @@ class TyperWindow(QWidget):
       log.error("run seems to be ~0.0 duration: %s", run)
       return self.typingFailed("Invalid run? (~0 duration)")
 
-    # global Q
-    # Q = run
-    # print()
-    # print(''.join(str(c) for c in run))
-    # print()
-    # print(run)
-    # print()
-
     now = time()
     textid, srcid, _ = self._current_lesson
     wpm, visc, acc = run.result(accuracy=True)
@@ -497,9 +499,10 @@ class TyperWindow(QWidget):
           wpm, acc, visc))
 
     # Update last view
-    v2 = self.DB.fetchone("""select agg_median(wpm),agg_median(acc) from
-      (select wpm,100.0*accuracy as acc from result order by w desc limit %d)""" % self._settings.get('def_group_by'), (0.0, 100.0))
-    self.updateLabel("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0*acc) + v2))
+    if self._settings.get("show_last"):
+      v2 = self.DB.fetchone("""select agg_median(wpm),agg_median(acc) from
+        (select wpm,100.0*accuracy as acc from result order by w desc limit %d)""" % self._settings.get('def_group_by'), (0.0, 100.0))
+      self.updateLabel("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0*acc) + v2))
 
     # type (0: char, 1: trigram, 2: word)
 
@@ -511,7 +514,7 @@ class TyperWindow(QWidget):
       sub = run[i:i+1]
       spc, _, flaw = sub.stats
       if spc is None:
-        log.info(f"skipping wpm=None char statistic: {i=} {sub}")
+        log.info(f"skipping {sub.text} char statistic: {sub.start_end}")
         continue
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(sub.median_err(med_char))
@@ -519,7 +522,7 @@ class TyperWindow(QWidget):
     for sub in run.timed_ngrams(3):
       spc, vc, flaw = sub.stats
       if spc is None:
-        log.info(f"skipping wpm=None trigram statistic: {sub}")
+        log.info(f"skipping {sub.text} trigram statistic: {sub.start_end}")
         continue
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(vc)
@@ -527,7 +530,7 @@ class TyperWindow(QWidget):
     for sub in run.timed_words():
       spc, vc, flaw = sub.stats
       if spc is None:
-        log.info(f"skipping wpm=None word statistic: {sub}")
+        log.info(f"skipping {sub.text} word statistic: {sub.start_end}")
         continue
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(vc)

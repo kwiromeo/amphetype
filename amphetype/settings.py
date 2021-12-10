@@ -2,6 +2,8 @@
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QSpinBox, QDoubleSpinBox
+from amphetype.fwidgets import FColorButton
 
 
 class FVar(QObject):
@@ -11,16 +13,16 @@ class FVar(QObject):
     super().__init__(parent, objectName=name)
     self._name = name
 
-  def __call__(self, val=None):
-    if val is not None:
-      return self.set(val)
-    return self.get()
-
 
 class FValueVar(FVar):
   def __init__(self, parent, name, val):
     super().__init__(parent, name)
     self._value = self.convert(val)
+
+  def __call__(self, val=None):
+    if val is not None:
+      return self.set(val)
+    return self.get()
 
   def get(self):
     return self._value
@@ -41,13 +43,36 @@ class FValueVar(FVar):
     if call:
       return func()
 
+  def button(self, text):
+    raise NotImplementedError
+
+  def spin_box(self, min, max=None, step=None):
+    if not hasattr(self, '_spin_box_class'):
+      raise NotImplementedError
+
+    if max is None:
+      min, max = self.convert(0), max
+    if step is None:
+      step = self.convert(1)
+
+    return self._spin_box_class(
+      minimum=min, maximum=max, singleStep=step,
+      value=self.get(), valueChanged=self.set)
 
 class FIntVar(FValueVar):
   onValue = pyqtSignal(int)
+  _spin_box_class = QSpinBox
 
   def convert(self, val):
     return int(val)
   
+class FFloatVar(FValueVar):
+  onValue = pyqtSignal(float)
+  _spin_box_class = QDoubleSpinBox
+
+  def convert(self, val):
+    return float(val)
+
 
 class FColorVar(FValueVar):
   onValue = pyqtSignal(QColor)
@@ -55,6 +80,8 @@ class FColorVar(FValueVar):
   def convert(self, val):
     return QColor(val)
 
+  def button(self, text=''):
+    return FColorButton(self, text)
   
 class FBoolVar(FValueVar):
   onValue = pyqtSignal(bool)
@@ -104,6 +131,9 @@ class FGroupVar(FVar):
       raise ValueError(f"variable not found: {name}")
     return obj
 
+  def __iter__(self):
+    return (x for x in self.children() if isinstance(x, FValueVar))
+
 
 class FSettings(QSettings):
   def __init__(self, *args, appname=None, filename=None, **kwargs):
@@ -132,6 +162,8 @@ class FSettings(QSettings):
       obj = FChoiceVar(parent, name, actual, extra)
     elif isinstance(val, int) and extra is None:
       obj = FIntVar(parent, name, actual)
+    elif isinstance(val, float):
+      obj = FFloatVar(parent, name, actual)
     elif isinstance(val, QColor):
       obj = FColorVar(parent, name, actual)
     elif isinstance(val, bool):
@@ -140,8 +172,8 @@ class FSettings(QSettings):
       raise RuntimeError(f'unknown type {type(val)} for {name}')
 
     return obj
-  
-  def makeSettings(self, name, opts, parent=None):
+
+  def makeSettings(self, name, opts=None, parent=None):
     grp = FGroupVar(parent or self, name)
     for k, v in opts.items():
       obj = self.create(grp, name + '/' + k, v)

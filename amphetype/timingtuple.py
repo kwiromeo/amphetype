@@ -124,6 +124,12 @@ class RunStats(datatuple):
     return self.index >= len(self) - 1
 
   @property
+  def start_end(self):
+    if not len(self):
+      return (None, None)
+    return self.started, self[-1].last
+
+  @property
   def text(self):
     return ''.join(self.char)
 
@@ -143,6 +149,7 @@ class RunStats(datatuple):
     res = super().__getitem__(idx)
     if isinstance(idx, slice):
       s,e,d = idx.indices(len(self))
+      assert d > 0
       if s-d == -1:
         res.started = self.started
       elif 0 <= s-d < len(self):
@@ -169,7 +176,6 @@ class RunStats(datatuple):
       self.current.visit(correct, self.previous.last)
     else:
       self.current.visit(correct, self.started)
-    # print(f'visit {self.current=}, {self.started=}, {self.previous=}')
 
   def advance(self, real=True):
     if not real:
@@ -240,7 +246,7 @@ class RunStats(datatuple):
       word = self[m.start():m.end()]
       if len(word) >= 4 and (not complete or word.is_complete()):
         yield word
-    
+
 # Speedbumps:
 
 # vv--- fast

@@ -42,6 +42,7 @@ from amphetype.Config import PreferenceWidget
 from amphetype.Lesson import LessonGenerator
 from amphetype.Widgets.Database import DatabaseWidget
 
+from amphetype.fwidgets import FStackedWidget
 from amphetype.typer import TyperWindow
 
 from PyQt5.QtCore import *
@@ -60,10 +61,11 @@ class AmphetypeWindow(QMainWindow):
     tabs = QTabWidget()
 
     quiz = Quizzer()
-    tabs.addTab(quiz, "Typer")
-
     tw = TyperWindow()
-    tabs.addTab(tw, "Typer2 (beta)")
+    quiztw = FStackedWidget([quiz, tw])
+    tabs.addTab(quiztw, "Typer")
+    quiztw.setCurrentIndex(Settings.get('which_typer'))
+    Settings.signal_for('which_typer').connect(quiztw.setCurrentIndex)
 
     tm = TextManager()
     quiz.wantText.connect(tm.nextText)
