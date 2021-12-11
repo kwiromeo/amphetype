@@ -1,5 +1,5 @@
 import logging as log
-from time import perf_counter as timer
+from amphetype import timer
 import re
 
 def median(lst):

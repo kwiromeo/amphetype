@@ -13,7 +13,8 @@ from amphetype.timingtuple import RunStats
 from amphetype.Data import Statistic
 from collections import defaultdict, Counter
 
-from time import (time, perf_counter as timer)
+from time import time
+from amphetype import timer
 
 
 RETURN_CHAR = '⏎' # '↵'
