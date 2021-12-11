@@ -56,7 +56,6 @@ AMPH_LOCAL     setting this to "1" is the same as specifying "-l".
 
   args.settings = args.settings or os.environ.get('AMPH_SETTINGS')
   args.local = args.local or _env_true(os.environ.get('AMPH_LOCAL'))
-  print(args)
 
   logfile = args.log or os.environ.get('AMPH_LOGFILE')
   logargs = dict(level=logging.DEBUG)
