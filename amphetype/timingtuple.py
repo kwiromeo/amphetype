@@ -120,6 +120,12 @@ class RunStats(datatuple):
     return self[self.index-1]
 
   @property
+  def next(self):
+    if self.index >= len(self) - 1:
+      return None
+    return self[self.index+1]
+
+  @property
   def ending(self):
     return self.index >= len(self) - 1
 

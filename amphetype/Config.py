@@ -1,35 +1,18 @@
 
+from amphetype import *
 
-import pickle
 from amphetype.QtUtil import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+
+import pickle
 import getpass
 import os
 import re
 from pathlib import Path
-from amphetype.meta import *
+import logging as log
 
 from amphetype.settings import FSettings
-
-# First of all parse argument for setting file location.
-import argparse
-
-parser = argparse.ArgumentParser(description="Advanced type training program.")
-parser.add_argument('-l', '--local', action='store_true',
-                    help=f"""uses the local data directory ({DATA_DIR}) for database and
-                    settings. Useful for running a "portable" instance that stores all
-                    files locally instead of in user home directory.""")
-parser.add_argument('-d', '--database', metavar='DBFILE',
-                    help='uses the database file %(metavar)s')
-parser.add_argument('-s', '--settings', metavar='INIFILE',
-                    help="uses settings file %(metavar)s")
-parser.add_argument('-V', '--version', action='version', version=f'amphetype {__version__}')
-
-# parse_known_args() because there might be QT arguments?
-cliopts, _ = parser.parse_known_args()
-
-
 
 
 def get_default_db_name():
@@ -148,18 +131,18 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
   }
 
   def __init__(self, *args):
-    if cliopts.settings:
-      super().__init__(filename=cliopts.settings)
-    elif cliopts.local:
+    if cli_options.settings:
+      super().__init__(filename=cli_options.settings)
+    elif cli_options.local:
       super().__init__(filename=str(DATA_DIR / 'amphetype.ini'))
     else:
       super().__init__(appname='amphetype')
 
     # Set some runtime defaults here.
 
-    if cliopts.database:
-      _dbname = cliopts.database
-    elif cliopts.local:
+    if cli_options.database:
+      _dbname = cli_options.database
+    elif cli_options.local:
       _dbname = str(DATA_DIR / get_default_db_name())
     else:
       pth = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)

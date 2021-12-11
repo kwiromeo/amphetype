@@ -1,7 +1,7 @@
 
-
+from amphetype import *
 import sys
-from amphetype.meta import *
+import logging as log
 
 # The order of the code and imports here is important (and a kludge).
 # Due to being young and stupid I made the module files do weird
@@ -16,10 +16,6 @@ class AmphetypeApp(QApplication):
 
 
 app = AmphetypeApp()
-
-# Initialize logging (XXX: is this used anymore?)
-import logging as log
-log.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Import Config.py; this will do argument parsing and set up the
 # global var "Settings".

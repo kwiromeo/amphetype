@@ -41,7 +41,7 @@ Features include:
 
 ## GNU/Linux
 
-Install via pip:
+Easiest is to install via `pip`[^1] or `pipx`[^2]:
 
 ```bash
 $ pip install --user amphetype
@@ -53,20 +53,24 @@ Note that Amphetype requires Python 3.6+.
 
 Check out the releases for an installer.
 
+Making Windows installations is a bit painful for me since I don't have regular
+access to Windows for testing. As a last resort you could try using [Linux in
+Windows](https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6).
+
 ## MacOS
 
-Here I will pretty much just copy instructions out of Google, because
-I have no experience with OSX.
+... nor do I have access to a Mac, so here I will pretty much just copy
+instructions out of Google, because I have no experience.
 
 (If you're an experienced user, the Linux instructions above
-are probably enough.)
+are probably enough for you.)
 
 1. First install [Homebrew](https://brew.sh/) if you don't have it.
-2. Then (still in a terminal) install Python 3, also if you don't have it:
+2. Then (in the terminal app) install Python 3 if you don't have it:
    ```bash
    $ brew install python
    ```
-3. I've encountered one user who had to manually install `pyqt5`:
+3. I've encountered at least one user who had to manually install `pyqt5`:
    ```bash
    $ brew install pyqt5
    ```
@@ -83,13 +87,15 @@ are probably enough.)
       ```bash
       $ python3 -m pip install amphetype
       ```
-      (The command might be `python3.9` or `python3.10` instead of `python3`.)
+      (The command might be `python3.9` or `python3.10` or `python`.)
 5. Run the program:
    ```bash
    $ amphetype
    ```
-   (Might also work to find it with Finder? I don't really know! If a OSX dev is willing to write
-   better and less confusing instructions, let me know!)
+   (I'm not sure if it shows up in Finder?)
+   
+If a OSX dev is willing to write better and less confusing instructions, let me
+know!
 
 # Resurrected?
 
@@ -116,7 +122,7 @@ My own inspiration for switching to a different keyboard layout and why I made A
 
 # Screenshots
 
-**TODO**: make actually attractive screenshots.
+**TODO**: make more attractive screenshots.
 
 Using various themes:
 
@@ -124,3 +130,11 @@ Using various themes:
 ![screenshot2](screenshot-pref.png)
 ![screenshot3](screenshot-graph.png)
 ![screenshot4](screenshot5.png)
+
+[^1]: If you get something like "command not found," replace all instances of
+    `pip` with `python -m pip`. If _that_ gives an error like "module not
+    found," try `python -m ensurepip` first.
+
+[^2]: You could also try using `pipx` which isolates installations in its own
+    virtual environment, so dependencies do not interact with the rest of your
+    system.
