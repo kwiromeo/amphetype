@@ -442,13 +442,12 @@ class TyperWindow(QWidget):
   def setText(self, txt):
     self._current_lesson = txt
     textid, _, _ = txt
-    pre,text,post = self.DB.getTextContext(textid)
-    if text is None:
-      text = txt
+    pre,_,post = self.DB.getTextContext(textid)
+
     pre = '[BEGIN]' if pre is None else pre[2]
     post = '[END]' if post is None else post[2]
 
-    self._doc.set_text(text[2], prologue=(pre + '\n'), epilogue=('\n' + post))
+    self._doc.set_text(txt[2], prologue=(pre + '\n'), epilogue=('\n' + post))
     self._typer.setFocus()
     self._prog.setValue(0)
 
@@ -590,4 +589,3 @@ class TyperWindow(QWidget):
     else:
       self.wantText.emit()
 
-# Q = None

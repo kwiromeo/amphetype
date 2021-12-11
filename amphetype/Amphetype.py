@@ -88,8 +88,8 @@ class AmphetypeWindow(QMainWindow):
     lg.newReview.connect(tm.newReview)
     tabs.addTab(lg, "Lesson Generator")
 
+    ph.setText.connect(tm.emit_text)
     tm.setText.connect(tw.setText)
-    ph.setText.connect(tw.setText)
     tw.wantText.connect(tm.nextText)
     tw.wantReview.connect(lg.wantReview)
     tw.statsChanged.connect(ph.updateData)

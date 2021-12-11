@@ -193,7 +193,7 @@ Good luck!""")
     q = self.addTexts("<Reviews>", [review], lesson=2, update=False)
     if q:
       v = DB.fetchone("select id,source,text from text where id = ?", self.defaultText, q)
-      self.setText.emit(v)
+      self.emit_text(v)
     else:
       self.nextText()
 
@@ -229,7 +229,7 @@ Good luck!""")
     if v is None:
       v = self.defaultText
 
-    self.setText.emit(v)
+    self.emit_text(v)
 
   def removeUnused(self):
     DB.execute('''
@@ -292,8 +292,29 @@ Good luck!""")
     v = DB.fetchall('select id,source,text from text where rowid = ?', (q[0], ))
 
     self.cur = v[0] if len(v) > 0 else self.defaultText
-    self.setText.emit(self.cur)
+    self.emit_text(self.cur)
     self.gotoText.emit()
 
+  def emit_text(self, v):
+    log.info("setting new text id=%s length=%d source=%s", v[0], len(v[2]), v[1])
+    if Settings.get('text_force_ascii'):
+      tid, tsrc, ttxt = v
+      v = (tid, tsrc, force_ascii(ttxt))
+    self.setText.emit(v)
 
 
+_bothered = False
+def force_ascii(txt):
+  try:
+    import translitcodec
+    import codecs
+    return codecs.encode(txt, 'translit/long')
+  except ImportError:
+    # What do we do here?
+    global _bothered
+    if not _bothered:
+      QMessageBox.information(
+        None, "Missing Module",
+        "Module <code>translitcodec</code> needed to translate unicode to ascii.\nTry running <code>pip install translitcodec</code>.")
+    _bothered = True
+    return txt.encode('ascii', errors='replace').decode()

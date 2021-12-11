@@ -1,11 +1,8 @@
 
-#import psyco
-import platform
-import collections
 import time
+import collections
 import re
 import sys
-import logging as log
 
 from amphetype.Data import Statistic, DB
 from amphetype.Config import Settings
@@ -15,27 +12,6 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from amphetype.QtUtil import *
 
-if sys.hexversion < 0x30a0000 and platform.system() == "Windows":
-  # hack hack, hackity hack
-  timer = time.clock
-  timer()
-else:
-  timer = time.perf_counter
-
-_bothered = False
-def force_ascii(txt):
-  try:
-    import translitcodec
-    import codecs
-    return codecs.encode(txt, 'translit/long')
-  except ImportError:
-    # What do we do here?
-    global _bothered
-    if not _bothered:
-      QMessageBox.information(None, "Missing Module", "Module <code>translitcodec</code> needed to translate unicode to ascii.\nTry running <code>pip install translitcodec</code>.")
-      _bothered = True
-    return txt.encode('ascii', 'ignore')
-  
 
 class Typer(QTextEdit):
   sigDone = pyqtSignal()
@@ -198,9 +174,6 @@ class Quizzer(QWidget):
     self.typer.setFont(f)
 
   def setText(self, text):
-    if Settings.get('text_force_ascii'):
-      text = list(text)
-      text[2] = force_ascii(text[2])
     self.text = text
     self.label.setText(self.text[2].replace("\n", "↵\n"))
     self.typer.setTarget(self.text[2])
