@@ -65,7 +65,6 @@ AMPH_LOCAL     setting this to "1" is the same as specifying "-l".
     logargs['level'] = logging.CRITICAL
 
   logging.basicConfig(format='%(asctime)s :: %(levelname)s :: %(message)s',
-                      encoding='utf-8',
                       **logargs)
 
   return args
