@@ -395,7 +395,7 @@ class TyperWindow(QWidget):
     self._prog_layout = FStackedWidget([self._label, self._progw])
 
     self.S('show_progress').bind_value(self._progw.setCurrentIndex)
-    self.S('require_space').bind_change(self.updateLabel)
+    self.S('require_space').bind_change(lambda: self.updateLabel())
 
     # I am so confused. Settings system must have gone through 3 totally different paradigms.
     self._settings.signal_for("typer_font").connect(self.updateFont)
