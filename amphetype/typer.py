@@ -504,6 +504,7 @@ class TyperWindow(QWidget):
         (select wpm,100.0*accuracy as acc from result order by w desc limit %d)""" % self._settings.get('def_group_by'), (0.0, 100.0))
       self.updateLabel("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0*acc) + v2))
 
+    self.DB.commit()
     # type (0: char, 1: trigram, 2: word)
 
     stats = defaultdict(Statistic)
@@ -567,6 +568,7 @@ class TyperWindow(QWidget):
       values (?,?,?,?)
       ''', [(now, k[0], k[1], v) for k, v in mistakes.items()])
 
+    self.DB.commit()
     self.statsChanged.emit()
 
     if is_lesson:
