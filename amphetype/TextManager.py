@@ -103,6 +103,7 @@ Good luck!""")
         ], QBoxLayout.LeftToRight))
 
     Settings.signal_for("select_method").connect(self.setSelect)
+    Settings.signal_for('text_force_ascii').connect(self.nextText)
     self.setSelect(Settings.get('select_method'))
 
   def setSelect(self, v):
