@@ -62,7 +62,7 @@ AMPH_LOCAL     setting this to "1" is the same as specifying "-l".
   if logfile == '-':
     logargs['stream'] = sys.stdout
   elif not logfile:
-    logargs['level'] = logging.CRITICAL
+    logargs['level'] = logging.ERROR
 
   logging.basicConfig(format='%(asctime)s :: %(levelname)s :: %(message)s',
                       **logargs)
