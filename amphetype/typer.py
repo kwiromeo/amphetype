@@ -1,6 +1,3 @@
-import logging as log
-# log.root.setLevel(log.INFO)
-
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -15,6 +12,8 @@ from collections import defaultdict, Counter
 
 from time import time
 from amphetype import timer
+import logging as log
+# log.root.setLevel(log.INFO)
 
 
 RETURN_CHAR = '⏎' # '↵'
@@ -528,7 +527,7 @@ class TyperWindow(QWidget):
 
     for sub in run.timed_ngrams(3):
       spc, vc, flaw = sub.stats
-      if spc is None:
+      if spc is None or vc is None:
         log.info(f"skipping {sub.text} trigram statistic: {sub.start_end}")
         continue
       stats[sub.text].append(spc, flaw)
@@ -536,7 +535,7 @@ class TyperWindow(QWidget):
 
     for sub in run.timed_words():
       spc, vc, flaw = sub.stats
-      if spc is None:
+      if spc is None or vc is None:
         log.info(f"skipping {sub.text} word statistic: {sub.start_end}")
         continue
       stats[sub.text].append(spc, flaw)
