@@ -1,4 +1,3 @@
-
 # Amphetype
 
 Amphetype is an advanced typing practice program.
@@ -48,6 +47,10 @@ $ pip install --user amphetype
 ```
 
 Note that Amphetype requires at least Python 3.6+.
+
+**The most recent version (1.2.x) on PyPi could be considered BETA as
+it features a major update and overhaul and a new typing widget.
+You can specify the old version with `amphetype==1.0.1`.**
 
 ## Windows
 
