@@ -247,6 +247,7 @@ class LessonDocument(QTextDocument):
       return
 
     mark = Cursor(self.cursor)
+
     if mark.atBlockStart():
       mark.movePosition(mark.PreviousCharacter)
     if by_word:
@@ -262,7 +263,11 @@ class LessonDocument(QTextDocument):
     while self.cursor > mark:
       if protected and not self._run.last_was_error():
         break
+      if self.cursor.atBlockStart():
+        self.cursor.movePosition(mark.PreviousCharacter)
+        continue
       c = self._run.pop_char()
+      log.debug("backspacing over <%s> (by_word=%s protected=%s cursor=%s mark=%s)", c, by_word, protected, str(self.cursor), str(mark))
       if c is not None:
         self.cursor.insertText(c, self.style_untyped)
         self.cursor.movePosition(QTextCursor.PreviousCharacter)
@@ -438,6 +443,7 @@ class TyperWindow(QWidget):
     self._prog.setMaximum(len(text))
 
   def setDefaultText(self):
+    log.error("setDefaultText() NOT IMPLEMENTED")
     print("setDefaultText() NOT IMPLEMENTED")
 
   def setText(self, txt):
