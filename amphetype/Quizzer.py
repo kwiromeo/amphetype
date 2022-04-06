@@ -4,6 +4,7 @@ import collections
 import re
 import sys
 
+from amphetype import timer
 from amphetype.Data import Statistic, DB
 from amphetype.Config import Settings
 
