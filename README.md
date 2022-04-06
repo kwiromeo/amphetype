@@ -47,7 +47,7 @@ Easiest is to install via `pip`[^1] or `pipx`[^2]:
 $ pip install --user amphetype
 ```
 
-Note that Amphetype requires Python 3.6+.
+Note that Amphetype requires at least Python 3.6+.
 
 ## Windows
 

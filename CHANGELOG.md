@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.2.1 - 2022-04-08
+
+Major update with a new typing widget that offers a lot more more flexibility in
+usage.
 
 ### Added
 - New beta typing interface with lots of added features.
@@ -12,20 +15,25 @@
 - Probably a lot more that I've forgotten to note here.
 - Buttons for deleting all statistics and results within last minute/hour/day.
 - Configurable line height and paragraph separation (Typer 2).
+- Alt/Ctrl/Meta + backspace now deletes back one word (only Ctrl+Backspace in
+  typer 1).
+- Added option to break sentences when importing text.
+- More actual helpful text in the help tab.
 
 ### Changed
-- Fixed two crashes that could occur (Typer 1).
 - Changed how viscosity is calculated (Typer 2 ONLY): in the new model only
   inputs slower than the median measure (of its kind) get assigned any
   viscosity.
 - Typing now occurs in the same place as the input text (Typer 2).
-- Alt/Ctrl/Meta + backspace now deletes back one word.
-- Paragraphs are wrapped in markup and now have some spacing between
-  them.
+- Paragraphs are wrapped in markup and now have some spacing between them.
 - Changed to using perf_counter() -- hopefully leading to better timing data.
 - Colors are more configurable (Typer 2).
-- Added option to break sentences when importing text.
+- More command-line options and support for environment variables read.
+
+### Fixed
+- Fixed two crashes that could occur (Typer 1).
 - Min/max lesson size now actually works more like expected.
+- Refresh text when changing the "force ASCII" option.
 
 ## 1.0.1 - 2021-02-20
 
