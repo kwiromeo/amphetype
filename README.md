@@ -62,6 +62,8 @@ Windows](https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6).
 
 ## MacOS
 
+### MacOS using Homebrew
+
 ... nor do I have access to a Mac, so here I will pretty much just copy
 instructions out of Google, because I have no experience.
 
@@ -102,12 +104,17 @@ know!
 
 ### MacOS with uv
 
+0. Install [`uv`](https://docs.astral.sh/uv/) using Homebrew
+
+```sh
+brew install uv
+```
+
 1. Create a virtual environment and activate it:
 
 ```sh
 # create a virtual environment with Python 3.11 to support pyqt5
 uv venv venv --python 3.11
-
 source venv/bin/activate
 ```
 
