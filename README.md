@@ -14,7 +14,7 @@ Features include:
   automatically generate bite-sized lessons from the text. For
   example, when I was learning the [Colemak](https://colemak.com/)
   keyboard layout, I typed _The Metamorphosis_ by Franz Kafka!
-  
+
 * Typing statistics.
 
   It provides the basic typing statistics (accuracy and WPM) across
@@ -22,7 +22,7 @@ Features include:
   break your flow and what impact these "viscous" combinations have on
   your typing speed overall. It also shows a graphs of progress over
   time.
-  
+
 * Generate lessons from past statistics.
 
   Amphetype features an advanced lesson generator where you can
@@ -62,6 +62,8 @@ Windows](https://www.microsoft.com/en-us/p/ubuntu/9nblggh4msv6).
 
 ## MacOS
 
+### MacOS using Homebrew
+
 ... nor do I have access to a Mac, so here I will pretty much just copy
 instructions out of Google, because I have no experience.
 
@@ -96,9 +98,44 @@ are probably enough for you.)
    $ amphetype
    ```
    (I'm not sure if it shows up in Finder?)
-   
+
 If a OSX dev is willing to write better and less confusing instructions, let me
 know!
+
+### MacOS with uv
+
+0. Install [`uv`](https://docs.astral.sh/uv/) using Homebrew
+
+```sh
+brew install uv
+```
+
+1. Create a virtual environment and activate it:
+
+```sh
+# create a virtual environment with Python 3.11 to support pyqt5
+uv venv venv --python 3.11
+source venv/bin/activate
+```
+
+2. Install the requirements:
+
+```
+uv pip install -r requirements.txt
+```
+
+3. Install amphetype within the environment
+
+```
+# Install amphetype as an editable package
+uv pip install e .
+```
+
+4. Launch the amplication
+
+```
+python -c "from amphetype.main import main_normal; main_normal()"
+```
 
 # Resurrected?
 
