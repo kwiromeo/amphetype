@@ -15,7 +15,9 @@ except ImportError:
 import amphetype.Text as Text
 from amphetype.Config import *
 from amphetype.QtUtil import *
-
+from PyQt5.QtWidgets import QTextEdit, QFileDialog
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QTextOption
 
 class StringListWidget(QTextEdit):
   updated = pyqtSignal()
