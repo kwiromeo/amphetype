@@ -9,8 +9,6 @@ from PyQt5.QtWidgets import QApplication, QLabel, QProgressBar, QSizePolicy, QTe
 from amphetype import timer
 from amphetype.Data import Statistic
 from amphetype.fwidgets import FStackedWidget
-
-# from amphetype.settings import
 from amphetype.layout import FBoxLayout
 from amphetype.timingtuple import RunStats
 
