@@ -1,10 +1,9 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtWidgets import QPushButton, QColorDialog, QStackedWidget, QWidget, QLabel
 
 
 class FColorButton(QPushButton):
-  def __init__(self, var, text=''):
+  def __init__(self, var, text=""):
     super().__init__(clicked=self.pickColor)
     self._var = var
     self._text = text
@@ -20,7 +19,7 @@ class FColorButton(QPushButton):
   def updateIcon(self):
     pix = QPixmap(64, 32)
     pix.fill(self._var.get())
-    self.setText(f'{self._text} {self._var.get().name()}'.strip())
+    self.setText(f"{self._text} {self._var.get().name()}".strip())
     self.setIcon(QIcon(pix))
 
 
@@ -49,4 +48,4 @@ class FStackedWidget(QStackedWidget):
   def showLast(self):
     n = self.count()
     if n > 0:
-      self.setCurrentIndex(n-1)
+      self.setCurrentIndex(n - 1)
