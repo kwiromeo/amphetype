@@ -1,11 +1,9 @@
 import locale
 import time
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication, QLabel, QProgressBar, QWidget
 
-from amphetype.Config import *
+from amphetype.Config import Settings, SettingsEdit
 from amphetype.Data import DB
 from amphetype.QtUtil import AmphBoxLayout, AmphButton
 
