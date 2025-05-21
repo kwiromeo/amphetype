@@ -1,26 +1,21 @@
-
-
 import time
-from itertools import *
-import operator
 
-from amphetype.Data import DB
-from amphetype.Config import *
-from amphetype.QtUtil import *
+from PyQt5.QtCore import QVariant, pyqtSignal
+from PyQt5.QtWidgets import QComboBox, QWidget
 
 import amphetype.Widgets.Plotters as Plotters
-
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from amphetype.Config import Settings, SettingsCheckBox, SettingsCombo, SettingsEdit
+from amphetype.Data import DB
+from amphetype.QtUtil import AmphBoxLayout, AmphButton, AmphModel, AmphTree
 
 
 def dampen(x, n=10):
   ret = []
   s = sum(x[0:n])
-  q = 1/n
+  q = 1 / n
   for i in range(n, len(x)):
-    ret.append(s*q)
-    s += x[i] - x[i-n]
+    ret.append(s * q)
+    s += x[i] - x[i - n]
   return ret
 
 
@@ -29,8 +24,7 @@ class ResultModel(AmphModel):
     self.source = None
     self.data_ = []
     self.hidden = 1
-    return (["When", "Source", "WPM", "Accuracy", "Viscosity"],
-        [self.formatWhen, None, "%.1f", "%.1f%%", "%.1f"])
+    return (["When", "Source", "WPM", "Accuracy", "Viscosity"], [self.formatWhen, None, "%.1f", "%.1f%%", "%.1f"])
 
   def populateData(self, idx):
     if len(idx) > 0:
@@ -64,9 +58,9 @@ class ResultModel(AmphModel):
 
 
 class PerformanceHistory(QWidget):
-  setText = pyqtSignal('PyQt_PyObject')
+  setText = pyqtSignal("PyQt_PyObject")
   gotoText = pyqtSignal()
-  
+
   def __init__(self, *args):
     super(PerformanceHistory, self).__init__(*args)
 
@@ -84,33 +78,48 @@ class PerformanceHistory(QWidget):
     t.setUniformRowHeights(True)
     t.setRootIsDecorated(False)
     t.setIndentation(0)
-    t.doubleClicked['QModelIndex'].connect(self.doubleClicked)
-    Settings.signal_for('graph_what').connect(self.updateGraph)
-    Settings.signal_for('show_xaxis').connect(self.updateGraph)
-    Settings.signal_for('chrono_x').connect(self.updateGraph)
+    t.doubleClicked["QModelIndex"].connect(self.doubleClicked)
+    Settings.signal_for("graph_what").connect(self.updateGraph)
+    Settings.signal_for("show_xaxis").connect(self.updateGraph)
+    Settings.signal_for("chrono_x").connect(self.updateGraph)
     Settings.signal_for("dampen_graph").connect(self.updateGraph)
 
-    self.setLayout(AmphBoxLayout([
-        ["Show", SettingsEdit("perf_items"), "items from",
-          #SettingsCombo('lesson_stats', ["both", "texts", "lessons"]), "limited to",
-          self.cb_source,
-          "and group by", SettingsCombo('perf_group_by',
-            ["<no grouping>", "%d sessions" % Settings.get('def_group_by'), "sitting", "day"]),
-          None, AmphButton("Update", self.updateData)],
-        (t, 1),
-        ["Plot", SettingsCombo('graph_what', ((3, 'WPM'), (4, 'accuracy'), (5, 'viscosity'))),
-          SettingsCheckBox("show_xaxis", "Show X-axis"),
-          SettingsCheckBox("chrono_x", "Use time-scaled X-axis"),
-          SettingsCheckBox("dampen_graph", "Dampen graph values"), None],
-        (self.plot, 1)
-      ]))
+    self.setLayout(
+      AmphBoxLayout(
+        [
+          [
+            "Show",
+            SettingsEdit("perf_items"),
+            "items from",
+            # SettingsCombo('lesson_stats', ["both", "texts", "lessons"]), "limited to",
+            self.cb_source,
+            "and group by",
+            SettingsCombo(
+              "perf_group_by", ["<no grouping>", "%d sessions" % Settings.get("def_group_by"), "sitting", "day"]
+            ),
+            None,
+            AmphButton("Update", self.updateData),
+          ],
+          (t, 1),
+          [
+            "Plot",
+            SettingsCombo("graph_what", ((3, "WPM"), (4, "accuracy"), (5, "viscosity"))),
+            SettingsCheckBox("show_xaxis", "Show X-axis"),
+            SettingsCheckBox("chrono_x", "Use time-scaled X-axis"),
+            SettingsCheckBox("dampen_graph", "Dampen graph values"),
+            None,
+          ],
+          (self.plot, 1),
+        ]
+      )
+    )
 
     Settings.signal_for("perf_items").connect(self.updateData)
     Settings.signal_for("perf_group_by").connect(self.updateData)
     Settings.signal_for("lesson_stats").connect(self.updateData)
 
   def updateGraph(self):
-    pc = Settings.get('graph_what')
+    pc = Settings.get("graph_what")
     y = [x[pc] for x in self.model.rows]
 
     if Settings.get("chrono_x"):
@@ -120,8 +129,8 @@ class PerformanceHistory(QWidget):
       x.reverse()
 
     if Settings.get("dampen_graph"):
-      y = dampen(y, Settings.get('dampen_average'))
-      x = dampen(x, Settings.get('dampen_average'))
+      y = dampen(y, Settings.get("dampen_average"))
+      x = dampen(x, Settings.get("dampen_average"))
 
     self.p = Plotters.Plot(x, y)
     self.plot.setScene(self.p)
@@ -134,7 +143,7 @@ class PerformanceHistory(QWidget):
     self.cb_source.addItem("<ALL TEXTS>")
     self.cb_source.addItem("<ALL LESSONS>")
 
-    for id, v in DB.fetchall('select rowid,abbreviate(name,30) from source order by name'):
+    for id, v in DB.fetchall("select rowid,abbreviate(name,30) from source order by name"):
       self.cb_source.addItem(v, QVariant(id))
     self.editflag = False
 
@@ -144,46 +153,46 @@ class PerformanceHistory(QWidget):
     where = []
     if self.cb_source.currentIndex() <= 0:
       pass
-    elif self.cb_source.currentIndex() == 1: # last text
-      where.append('r.text_id = (select text_id from result order by w desc limit 1)')
-    elif self.cb_source.currentIndex() == 2: # all texts
-      where.append('s.discount is null')
-    elif self.cb_source.currentIndex() == 3: # all lessons texts
-      where.append('s.discount is not null')
+    elif self.cb_source.currentIndex() == 1:  # last text
+      where.append("r.text_id = (select text_id from result order by w desc limit 1)")
+    elif self.cb_source.currentIndex() == 2:  # all texts
+      where.append("s.discount is null")
+    elif self.cb_source.currentIndex() == 3:  # all lessons texts
+      where.append("s.discount is not null")
     else:
       s = self.cb_source.itemData(self.cb_source.currentIndex())
-      where.append('r.source = %d' % s)
+      where.append("r.source = %d" % s)
 
     if len(where) > 0:
-      where = 'where ' + ' and '.join(where)
+      where = "where " + " and ".join(where)
     else:
       where = ""
 
-    g = Settings.get('perf_group_by')
-    if g == 0: # no grouping
-      sql = '''select text_id,w,s.name,wpm,100.0*accuracy,viscosity
+    g = Settings.get("perf_group_by")
+    if g == 0:  # no grouping
+      sql = """select text_id,w,s.name,wpm,100.0*accuracy,viscosity
         from result as r left join source as s on (r.source = s.rowid)
         %s %s
-        order by w desc limit %d'''
+        order by w desc limit %d"""
     elif g:
-      sql = '''select agg_first(text_id),avg(r.w) as w,count(r.rowid) || ' result(s)',agg_median(r.wpm),
+      sql = """select agg_first(text_id),avg(r.w) as w,count(r.rowid) || ' result(s)',agg_median(r.wpm),
             100.0*agg_median(r.accuracy),agg_median(r.viscosity)
         from result as r left join source as s on (r.source = s.rowid)
         %s %s
-        order by w desc limit %d'''
+        order by w desc limit %d"""
 
-    group = ''
-    if g == 1: # by Settings.get('def_group_by')
+    group = ""
+    if g == 1:  # by Settings.get('def_group_by')
       DB.resetCounter()
-      gn = Settings.get('def_group_by')
+      gn = Settings.get("def_group_by")
       if gn <= 1:
         gn = 1
       group = "group by cast(counter()/%d as int)" % gn
-    elif g == 2: # by sitting
-      mis = Settings.get('minutes_in_sitting') * 60.0
+    elif g == 2:  # by sitting
+      mis = Settings.get("minutes_in_sitting") * 60.0
       DB.resetTimeGroup()
       group = "group by time_group(%f, r.w)" % mis
-    elif g == 3: # by day
+    elif g == 3:  # by day
       group = "group by cast((r.w+4*3600)/86400 as int)"
 
     n = Settings.get("perf_items")
@@ -196,9 +205,9 @@ class PerformanceHistory(QWidget):
   def doubleClicked(self, idx):
     r = self.model.rows[idx.row()]
 
-    v = DB.fetchone('select id,source,text from text where id = ?', None, (r[0], ))
-    if v == None:
-      return # silently ignore
+    v = DB.fetchone("select id,source,text from text where id = ?", None, (r[0],))
+    if v is None:
+      return  # silently ignore
 
     self.setText.emit(v)
     self.gotoText.emit()
