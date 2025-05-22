@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QBoxLayout, QLabel, QLayout, QStackedLayout, QWidget
+
 
 class FStackedLayout(QStackedLayout):
   def __init__(self, contents, *args, **kwargs):
@@ -25,7 +26,8 @@ class FStackedLayout(QStackedLayout):
   def showLast(self):
     n = self.count()
     if n > 0:
-      self.setCurrentIndex(n-1)
+      self.setCurrentIndex(n - 1)
+
 
 class FBoxLayout(QBoxLayout):
   def __init__(self, tree, *args, direction=QBoxLayout.TopToBottom):
@@ -39,16 +41,18 @@ class FBoxLayout(QBoxLayout):
 
   def addStuff(self, x, stretch=0):
     if isinstance(x, str):
-      if '\n' in x:
+      if "\n" in x:
         self.addWidget(QLabel(x.strip(), wordWrap=True, openExternalLinks=True))
       else:
         self.addWidget(QLabel(x), stretch)
     elif isinstance(x, list):
       self.addLayout(FBoxLayout(x, direction=self.dualLayout()), stretch)
     elif isinstance(x, complex):
-      x,y = round(x.real), round(x.imag)
-      if x: self.addSpacing(x)
-      if y: self.addStretch(x)
+      x, y = round(x.real), round(x.imag)
+      if x:
+        self.addSpacing(x)
+      if y:
+        self.addStretch(x)
     elif isinstance(x, int):
       self.addSpacing(x)
     elif x is None:

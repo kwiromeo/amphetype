@@ -1,14 +1,16 @@
 import logging as log
-from amphetype import timer
 import re
+
+from amphetype import timer
+
 
 def median(lst):
   lst, n = sorted(lst), len(lst)
   if not n:
     return None
-  res = lst[n//2]
+  res = lst[n // 2]
   if n % 2 == 0:
-    res += lst[n//2+1]
+    res += lst[n // 2 + 1]
     res /= 2.0
   return res
 
@@ -19,7 +21,7 @@ class datatuple(tuple):
 
   def __getitem__(self, idx):
     if isinstance(idx, tuple):
-      return type(self)(x for (x,cond) in zip(self, idx))
+      return type(self)(x for (x, cond) in zip(self, idx))
     if isinstance(idx, list):
       return type(self)(self[i] for i in idx)
     res = super().__getitem__(idx)
@@ -41,11 +43,9 @@ class datatuple(tuple):
     yield type(self)(cur)
 
 
-class CharEntry():
-  __slots__ = ('char', 'inserts', 'timing',
-               'mistakes', 'first', 'first_any',
-               'last', 'errors')
-  
+class CharEntry:
+  __slots__ = ("char", "inserts", "timing", "mistakes", "first", "first_any", "last", "errors")
+
   def __init__(self, char):
     self.char = char
     self.inserts = 0
@@ -54,17 +54,17 @@ class CharEntry():
     self.last = None
     self.timing = None
     self.mistakes = 0
-    self.errors = ''
+    self.errors = ""
 
   def visited(self):
     return self.first is not None
 
   def visit(self, correct, last_time):
     now = timer()
-    
+
     if self.first_any is None:
       self.first_any = now
-      
+
     if correct:
       self.last = now
       if self.first is None:
@@ -85,7 +85,7 @@ class RunStats(datatuple):
     obj = RunStats(CharEntry(c) for c in text)
     obj.started = started
     return obj
-    
+
   def __new__(cls, cs):
     self = datatuple.__new__(cls, cs)
     idx = 0
@@ -96,10 +96,12 @@ class RunStats(datatuple):
     return self
 
   def __repr__(self):
-    return '\n'.join([
-      ' '.join([f"{c.char:^5s}" for c in self]),
-      ' '.join([f"{c.timing or -1:5.2f}" for c in self]),
-    ])
+    return "\n".join(
+      [
+        " ".join([f"{c.char:^5s}" for c in self]),
+        " ".join([f"{c.timing or -1:5.2f}" for c in self]),
+      ]
+    )
 
   def is_complete(self):
     return self.index >= len(self) and self.previous and self.previous.last is not None
@@ -117,13 +119,13 @@ class RunStats(datatuple):
   def previous(self):
     if self.index == 0:
       return None
-    return self[self.index-1]
+    return self[self.index - 1]
 
   @property
   def next(self):
     if self.index >= len(self) - 1:
       return None
-    return self[self.index+1]
+    return self[self.index + 1]
 
   @property
   def ending(self):
@@ -137,7 +139,7 @@ class RunStats(datatuple):
 
   @property
   def text(self):
-    return ''.join(self.char)
+    return "".join(self.char)
 
   @property
   def duration(self):
@@ -154,14 +156,14 @@ class RunStats(datatuple):
   def __getitem__(self, idx):
     res = super().__getitem__(idx)
     if isinstance(idx, slice):
-      s,e,d = idx.indices(len(self))
+      s, e, d = idx.indices(len(self))
       assert d > 0
-      if s-d == -1:
+      if s - d == -1:
         res.started = self.started
-      elif 0 <= s-d < len(self):
-        res.started = self[s-d].last
+      elif 0 <= s - d < len(self):
+        res.started = self[s - d].last
     return res
-        
+
   def last_was_error(self):
     if self.current and self.current.inserts > 0:
       return True
@@ -187,7 +189,7 @@ class RunStats(datatuple):
     if not real:
       self.current.inserts += 1
       return
-    
+
     self.index += 1
 
     # Interpolate a reasonable start time if one wasn't set.
@@ -207,7 +209,7 @@ class RunStats(datatuple):
       log.error(f"cannot fixup broken run, all times are invalid:\n{self}")
       return
 
-    self.started = self[i].last - (i+1) * med
+    self.started = self[i].last - (i + 1) * med
 
   @property
   def median_timing(self):
@@ -230,7 +232,7 @@ class RunStats(datatuple):
     return self.median_err(median(xs))
 
   def median_err(self, m):
-    return sum([(max(0, x.timing - m))**2 for x in self if x.timing])
+    return sum([(max(0, x.timing - m)) ** 2 for x in self if x.timing])
 
   def result(self, accuracy=False):
     # print(f'"{self.text}" {self.started=}, {self.duration=}, {self.previous=}, {self.per_sec=}')
@@ -243,15 +245,16 @@ class RunStats(datatuple):
 
   def timed_ngrams(self, n, complete=True):
     for i in range(n, len(self)):
-      gram = self[i-n:i]
+      gram = self[i - n : i]
       if not complete or gram.is_complete():
         yield gram
 
   def timed_words(self, complete=True):
     for m in re.finditer(r"\w+(?:['-]\w+)*", self.text):
-      word = self[m.start():m.end()]
+      word = self[m.start() : m.end()]
       if len(word) >= 4 and (not complete or word.is_complete()):
         yield word
+
 
 # Speedbumps:
 
@@ -267,4 +270,3 @@ class RunStats(datatuple):
 # vvv
 # ABC
 # ∧∧∧--- slow
-

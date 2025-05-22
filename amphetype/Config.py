@@ -1,17 +1,25 @@
-
-from amphetype import *
-
-from amphetype.QtUtil import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-
-import pickle
 import getpass
-import os
 import re
 from pathlib import Path
-import logging as log
 
+from PyQt5.QtCore import QObject, QStandardPaths, Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QFont, QIcon, QPixmap
+from PyQt5.QtWidgets import (
+  QApplication,
+  QCheckBox,
+  QColorDialog,
+  QComboBox,
+  QFileDialog,
+  QFontDialog,
+  QGroupBox,
+  QLabel,
+  QMessageBox,
+  QStyleFactory,
+  QWidget,
+)
+
+from amphetype import *
+from amphetype.QtUtil import AmphBoxLayout, AmphButton, AmphEdit, AmphGridLayout
 from amphetype.settings import FSettings
 
 
@@ -19,18 +27,18 @@ def get_default_db_name():
   "Default database name is based on username."
 
   try:
-    _user = getpass.getuser() or 'user'
-  except: # Docs just say "otherwise, an exception is raised."
-    _user = 'user'
+    _user = getpass.getuser() or "user"
+  except:  # Docs just say "otherwise, an exception is raised."
+    _user = "user"
 
-  _user = re.sub('[^a-z0-9_-]', '', _user, flags=re.I) or 'user'
-  return _user + '.db'
+  _user = re.sub("[^a-z0-9_-]", "", _user, flags=re.I) or "user"
+  return _user + ".db"
 
 
 class SettingsMeta(type(QObject)):
   def __new__(cls, name, bases, ns):
-    for k,v in ns['defaults'].items():
-      ns['change_' + k] = pyqtSignal([type(v)])
+    for k, v in ns["defaults"].items():
+      ns["change_" + k] = pyqtSignal([type(v)])
     return super().__new__(cls, name, bases, ns)
 
 
@@ -43,20 +51,18 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
   # setting will have.
   defaults = {
     "typer_font": str(QFont("Arial", 14).toString()),
-    "qt_style": "", # Will be set in __init__().
+    "qt_style": "",  # Will be set in __init__().
     "qt_css": "<none>",
-
     "text_force_ascii": False,
-    
     "history": 30.0,
     "min_chars": 220,
     "max_chars": 600,
     "break_sentences": False,
-    "lesson_stats": 0, # show text/lesson in perf -- not used anymore
+    "lesson_stats": 0,  # show text/lesson in perf -- not used anymore
     "perf_group_by": 0,
     "perf_items": 100,
     "text_regex": r"",
-    "db_name": '', # Will be set in __init__().
+    "db_name": "",  # Will be set in __init__().
     "select_method": 0,
     "num_rand": 50,
     "graph_what": 3,
@@ -65,78 +71,67 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     "show_xaxis": False,
     "chrono_x": False,
     "dampen_graph": False,
-
     "minutes_in_sitting": 60.0,
     "dampen_average": 10,
     "def_group_by": 10,
-
     "use_lesson_stats": False,
     "auto_review": False,
-
     "min_wpm": 0.0,
     "min_acc": 0.0,
     "min_lesson_wpm": 0.0,
     "min_lesson_acc": 97.0,
-
     "quiz_right_fg": "#000000",
     "quiz_right_bg": "#ffffff",
     "quiz_wrong_fg": "#ffffff",
     "quiz_wrong_bg": "#000000",
-    
     "group_month": 365.0,
     "group_week": 30.0,
     "group_day": 7.0,
-
     "ana_which": "wpm asc",
     "ana_what": 0,
     "ana_many": 30,
     "ana_count": 1,
-
     "gen_copies": 3,
     "gen_take": 2,
-    "gen_mix": 'c',
-    #"gen_stats": False,
-    "str_clear": 's',
+    "gen_mix": "c",
+    # "gen_stats": False,
+    "str_clear": "s",
     "str_extra": 10,
-    "str_what": 'e',
-
+    "str_what": "e",
     "which_typer": 0,
   }
 
   typer_defaults = {
-    'lenient_mode': False,
-    'require_space': True,
-    'overwrite_mode': True,
-    'limit_backspace': False,
-
-    'show_progress': True,
-
-    'para_margin': 6,
-    'para_lineheight': 1.0,
-    'background_color': QColor('white'),
+    "lenient_mode": False,
+    "require_space": True,
+    "overwrite_mode": True,
+    "limit_backspace": False,
+    "show_progress": True,
+    "para_margin": 6,
+    "para_lineheight": 1.0,
+    "background_color": QColor("white"),
   }
 
   typer_color_defaults = {
-    'inactive_bg': QColor('white'),
-    'inactive_fg': QColor('grey'),
-    'untyped_bg': QColor('#ffefdc'),
-    'untyped_fg': QColor('black'),
-    'correct_bg': QColor('#fff6eb'),
-    'correct_fg': QColor('dimgrey'),
-
-    'anyerror_bg': QColor('darksalmon'),
-    'anyerror_fg': QColor('black'),
-    'error_bg': QColor('firebrick'),
-    'error_fg': QColor('white'),
+    "inactive_bg": QColor("white"),
+    "inactive_fg": QColor("grey"),
+    "untyped_bg": QColor("#ffefdc"),
+    "untyped_fg": QColor("black"),
+    "correct_bg": QColor("#fff6eb"),
+    "correct_fg": QColor("dimgrey"),
+    "anyerror_bg": QColor("darksalmon"),
+    "anyerror_fg": QColor("black"),
+    "error_bg": QColor("firebrick"),
+    "error_fg": QColor("white"),
   }
 
   def __init__(self, *args):
     if cli_options.settings:
       super().__init__(filename=cli_options.settings)
     elif cli_options.local:
-      super().__init__(filename=str(DATA_DIR / 'amphetype.ini'))
+      super().__init__(filename=str(DATA_DIR / "amphetype.ini"))
     else:
-      super().__init__(appname='amphetype')
+      super().__init__(appname="amphetype")
 
     # Set some runtime defaults here.
 
@@ -152,14 +147,14 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
       else:
         pth = DATA_DIR
       _dbname = str(pth / get_default_db_name())
-    
-    self.defaults['db_name'] = _dbname
+
+    self.defaults["db_name"] = _dbname
 
     assert QApplication.instance()
-    self.defaults['qt_style'] = QApplication.instance().style().objectName().lower()
+    self.defaults["qt_style"] = QApplication.instance().style().objectName().lower()
 
-    self.typer_settings = self.makeSettings('typer', self.typer_defaults)
-    self.typer_colors = self.makeSettings('colors', self.typer_color_defaults)
+    self.typer_settings = self.makeSettings("typer", self.typer_defaults)
+    self.typer_colors = self.makeSettings("colors", self.typer_color_defaults)
 
   def get(self, k):
     return self.value(k, self.defaults[k], type=type(self.defaults[k]))
@@ -186,14 +181,13 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     self.signal_for(k).emit(v)
 
   def signal_for(self, k):
-    return getattr(self, 'change_' + k)
-
+    return getattr(self, "change_" + k)
 
 
 class SettingsColor(AmphButton):
   def __init__(self, key, text):
     self.key_ = key
-    super().__init__(f'{text} {Settings.get(key)}', self.pickColor)
+    super().__init__(f"{text} {Settings.get(key)}", self.pickColor)
     self.updateIcon()
 
   def pickColor(self):
@@ -209,7 +203,6 @@ class SettingsColor(AmphButton):
     pix.fill(c)
     self.setText(Settings.get(self.key_))
     self.setIcon(QIcon(pix))
-
 
 
 # TODO: XXX. Perhaps input and format numbers in locale? Possible
@@ -243,6 +236,7 @@ class SettingsColor(AmphButton):
 
 # Set validators, QDoubleValidator, QIntValidator?
 
+
 class SettingsEdit(AmphEdit):
   def __init__(self, setting):
     val = Settings.get(setting)
@@ -270,6 +264,7 @@ class SettingsEdit(AmphEdit):
     else:
       Settings.set(self.setting, v)
 
+
 class SettingsCombo(QComboBox):
   def __init__(self, setting, lst, *args):
     super(SettingsCombo, self).__init__(*args)
@@ -289,8 +284,9 @@ class SettingsCombo(QComboBox):
 
     self.activated[int].connect(lambda x: Settings.set(setting, self.idx2item[x]))
 
-    #self.connect(Settings, SIGNAL("change_" + setting),
+    # self.connect(Settings, SIGNAL("change_" + setting),
     #      lambda x: self.setCurrentIndex(self.item2idx[x]))
+
 
 class SettingsCheckBox(QCheckBox):
   def __init__(self, setting, *args, **kwargs):
@@ -305,84 +301,85 @@ def find_css_files():
     QStandardPaths.AppLocalDataLocation,
     QStandardPaths.AppDataLocation,
     QStandardPaths.AppConfigLocation,
-    Settings.DATA_DIR / 'css',
+    Settings.DATA_DIR / "css",
   ]
   res = set()
   for p in places:
     if not isinstance(p, Path):
-      pth = QStandardPaths.locate(p, 'css', QStandardPaths.LocateDirectory)
+      pth = QStandardPaths.locate(p, "css", QStandardPaths.LocateDirectory)
       if not pth:
         continue
       p = Path(pth)
     # print(f"scanning dir {p}")
-    for f in list(p.glob('*.qss')) + list(p.glob('*.stylesheet')) + list(p.glob('*.css')):
+    for f in list(p.glob("*.qss")) + list(p.glob("*.stylesheet")) + list(p.glob("*.css")):
       res.add(str(f))
 
   return set(res)
- 
 
 
 class SelectCSSBox(QComboBox):
   def __init__(self, *args):
     super().__init__(*args)
 
-    Settings.signal_for('qt_css').connect(self.refresh)
+    Settings.signal_for("qt_css").connect(self.refresh)
     self.activated[int].connect(self.setIdx)
     self.refresh()
 
   def setIdx(self, idx):
     if idx == 0:
-      Settings.set('qt_css', '<none>')
+      Settings.set("qt_css", "<none>")
     elif idx <= len(self._files):
-      Settings.set('qt_css', self._files[idx-1])
+      Settings.set("qt_css", self._files[idx - 1])
     else:
       # <select file>
       qf = QFileDialog(self, "Select CSS Theme")
       qf.setNameFilters(["QT CSS stylesheet (*.qss *.css *.stylesheet)", "All files (*)"])
       qf.setFileMode(QFileDialog.ExistingFile)
       qf.setAcceptMode(QFileDialog.AcceptOpen)
-      qf.fileSelected['QString'].connect(self.setCustomCSS)
+      qf.fileSelected["QString"].connect(self.setCustomCSS)
       qf.show()
 
   def setCustomCSS(self, fname):
-    Settings.set('qt_css', fname)
+    Settings.set("qt_css", fname)
 
   def refresh(self):
-    cur = Settings.get('qt_css')
+    cur = Settings.get("qt_css")
     _files = find_css_files()
-    if cur not in _files and cur != '<none>':
+    if cur not in _files and cur != "<none>":
       _files.add(cur)
     self._files = sorted(_files)
-    
+
     self.clear()
-    self.addItem('<none>')
+    self.addItem("<none>")
     self.setCurrentIndex(0)
-    for i,v in enumerate(self._files):
+    for i, v in enumerate(self._files):
       self.addItem(v)
       if v == cur:
-        self.setCurrentIndex(i+1)
-    self.addItem('<select file...>')
-
-
-
-
-
+        self.setCurrentIndex(i + 1)
+    self.addItem("<select file...>")
 
 
 from amphetype.layout import FBoxLayout
 
+
 class TyperInputOptions(QGroupBox):
   def __init__(self, S, *args, **kwargs):
-    super().__init__(*args, title='Input Mode', flat=False, **kwargs)
-    self.setLayout(FBoxLayout([
-      "Hover over these options for more information.",
-      QCheckBox('Overwrite mode',
-                checked=S['overwrite_mode'],
-                toggled=S('overwrite_mode').set,
-                toolTip="""In <b>overwrite mode</b> input will overwrite text in the buffer, no matter if correct or not. If turned off (insert mode) input will work more like real-world typing, but might be more distracting."""),
-      QCheckBox("Lenient mode (NB! Read tooltip!)",
-                checked=S['lenient_mode'], toggled=S('lenient_mode').set,
-                toolTip="""In <b>lenient mode</b> past errors will not
+    super().__init__(*args, title="Input Mode", flat=False, **kwargs)
+    self.setLayout(
+      FBoxLayout(
+        [
+          "Hover over these options for more information.",
+          QCheckBox(
+            "Overwrite mode",
+            checked=S["overwrite_mode"],
+            toggled=S("overwrite_mode").set,
+            toolTip="""In <b>overwrite mode</b> input will overwrite text in the buffer, no matter if correct or not. If turned off (insert mode) input will work more like real-world typing, but might be more distracting.""",
+          ),
+          QCheckBox(
+            "Lenient mode (NB! Read tooltip!)",
+            checked=S["lenient_mode"],
+            toggled=S("lenient_mode").set,
+            toolTip="""In <b>lenient mode</b> past errors will not
                 block further progress.
                 This means you can complete texts without fully matching it.<br />
 
@@ -396,63 +393,78 @@ class TyperInputOptions(QGroupBox):
                 on typing speed.
                 This means that less statistical data will be collected.<br />
 
-                It's thus recommended to not combine this with <i>overwrite mode</i> unless you have a strong preference."""),
-      QCheckBox('Wait for <SPACE> before start',
-                checked=S['require_space'], toggled=S('require_space').set,
-                toolTip="""Require user to press <i>spacebar</i> before accepting input. Note that turning this off means that the first letter, word, and trigraph of every lesson cannot be timed with 100% accuracy (a median will be used)."""),
-      QCheckBox('Prevent backspacing over correct input',
-                checked=S['limit_backspace'], toggled=S('limit_backspace').set,
-                toolTip="""Turning this on will prevent backspace from going back over any correct input. Works best for overwrite mode."""),
-      ]))
+                It's thus recommended to not combine this with <i>overwrite mode</i> unless you have a strong preference.""",
+          ),
+          QCheckBox(
+            "Wait for <SPACE> before start",
+            checked=S["require_space"],
+            toggled=S("require_space").set,
+            toolTip="""Require user to press <i>spacebar</i> before accepting input. Note that turning this off means that the first letter, word, and trigraph of every lesson cannot be timed with 100% accuracy (a median will be used).""",
+          ),
+          QCheckBox(
+            "Prevent backspacing over correct input",
+            checked=S["limit_backspace"],
+            toggled=S("limit_backspace").set,
+            toolTip="""Turning this on will prevent backspace from going back over any correct input. Works best for overwrite mode.""",
+          ),
+        ]
+      )
+    )
+
 
 class TyperOptions(QWidget):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     S = Settings.typer_settings
     C = Settings.typer_colors
-    self.setLayout(FBoxLayout([
-      "These options will only work if you've selected <b>Typer 2</b> as your input widget.",
-      "Note that most of the options under <i>General Options</i> will still continue to work for Typer 2.",
-      QLabel("<b>NB!</b> this is pretty beta stuff."
-             """ If you get any crashes or errors, <a href="https://gitlab.com/franksh/amphetype/-/issues">please report here</a>"""
-             " or send me an email (see About).",
-             wordWrap=True, openExternalLinks=True),
-      QCheckBox('Show progress bar while typing',
-                checked=S['show_progress'], toggled=S('show_progress').set),
-      ["Document background color", S('background_color').button(), None],
-      ['Paragraph margin (px)', S('para_margin').spin_box(0, 100), None],
-      ['Line spacing', S('para_lineheight').spin_box(0.6, 4.0, 0.05), None],
-      TyperInputOptions(S),
-      TyperColors(C),
-      None,
-    ]))
+    self.setLayout(
+      FBoxLayout(
+        [
+          "These options will only work if you've selected <b>Typer 2</b> as your input widget.",
+          "Note that most of the options under <i>General Options</i> will still continue to work for Typer 2.",
+          QLabel(
+            "<b>NB!</b> this is pretty beta stuff."
+            """ If you get any crashes or errors, <a href="https://gitlab.com/franksh/amphetype/-/issues">please report here</a>"""
+            " or send me an email (see About).",
+            wordWrap=True,
+            openExternalLinks=True,
+          ),
+          QCheckBox("Show progress bar while typing", checked=S["show_progress"], toggled=S("show_progress").set),
+          ["Document background color", S("background_color").button(), None],
+          ["Paragraph margin (px)", S("para_margin").spin_box(0, 100), None],
+          ["Line spacing", S("para_lineheight").spin_box(0.6, 4.0, 0.05), None],
+          TyperInputOptions(S),
+          TyperColors(C),
+          None,
+        ]
+      )
+    )
+
 
 class TyperColors(QGroupBox):
   def __init__(self, S, *args, **kwargs):
-    super().__init__(*args, title='Text Colors', flat=False, **kwargs)
-    self.setLayout(FBoxLayout([
-      [("Inactive surrounding text", 1),
-       S('inactive_fg').button('Text'),
-       S('inactive_bg').button('Background'),
-       (None, 2)],
-      [("Text to be typed", 1),
-       S('untyped_fg').button('Text'),
-       S('untyped_bg').button('Background'),
-       (None, 2)],
-      [("Correctly typed", 1),
-       S('correct_fg').button('Text'),
-       S('correct_bg').button('Background'),
-       (None, 2)],
-      [("Errors", 1),
-       S('error_fg').button('Text'),
-       S('error_bg').button('Background'),
-       (None, 2)],
-      [("Blocking errors (non-lenient)", 1),
-       S('anyerror_fg').button('Text'),
-       S('anyerror_bg').button('Background'),
-       (None, 2)],
-      ]))
-
+    super().__init__(*args, title="Text Colors", flat=False, **kwargs)
+    self.setLayout(
+      FBoxLayout(
+        [
+          [
+            ("Inactive surrounding text", 1),
+            S("inactive_fg").button("Text"),
+            S("inactive_bg").button("Background"),
+            (None, 2),
+          ],
+          [("Text to be typed", 1), S("untyped_fg").button("Text"), S("untyped_bg").button("Background"), (None, 2)],
+          [("Correctly typed", 1), S("correct_fg").button("Text"), S("correct_bg").button("Background"), (None, 2)],
+          [("Errors", 1), S("error_fg").button("Text"), S("error_bg").button("Background"), (None, 2)],
+          [
+            ("Blocking errors (non-lenient)", 1),
+            S("anyerror_fg").button("Text"),
+            S("anyerror_bg").button("Background"),
+            (None, 2),
+          ],
+        ]
+      )
+    )
 
 
 class GeneralOptions(QWidget):
@@ -460,58 +472,108 @@ class GeneralOptions(QWidget):
     super().__init__(*args, **kwargs)
 
     self.font_lbl = QLabel()
-    self.style_box = SettingsCombo('qt_style', [(x.lower(), x.lower()) for x in QStyleFactory.keys()])
+    self.style_box = SettingsCombo("qt_style", [(x.lower(), x.lower()) for x in QStyleFactory.keys()])
 
-    self.setLayout(AmphBoxLayout([
-      ["Typer font is", self.font_lbl, AmphButton("Change...", self.setFont), None],
-      None,
-      ["Input widget", SettingsCombo('which_typer', ['Typer 1.0: copy text', 'Typer 2.0 (beta): write in the text itself']), None],
-      None,
-      [SettingsCheckBox("text_force_ascii", 'Force unicode to plain ASCII'), ('(‘fancy’ “quotes” → "normal" quotes, <code>æ</code> → <code>ae</code>, etc.)', 1)],
-      SettingsCheckBox('auto_review', "Automatically review slow and mistyped words after texts.",
-                       toolTip="""Automatically create post-lesson reviews if you didn't meet the WPM/accuracy criteria set on the <b>Sources</b> tab."""),
-      SettingsCheckBox('show_last', "Show last result(s) above text in the Typer."),
-      SettingsCheckBox('use_lesson_stats', "Save key/trigram/word statistics from generated lessons."),
-      SettingsCheckBox('req_space', "Make SPACE mandatory before each session (Typer 1 ONLY)",
-                        toolTip="""<b></b>This is generally recommended because otherwise the timing of the very first characer has to be inferred artificially."""),
-      None,
-      [AmphGridLayout([
-        ["TYPER 1 COLORS", "Text Color", "Background"],
-        ["Correct Input", SettingsColor('quiz_right_fg', "Foreground"),
-            SettingsColor('quiz_right_bg', "Background")],
-        ["Wrong Input", SettingsColor('quiz_wrong_fg', "Foreground"),
-            SettingsColor('quiz_wrong_bg', "Background")],
-        [1+1j,1+2j,2+1j,2+2j]
-      ]), None],
-      None,
-      ["Data is considered too old to be included in analysis after",
-        SettingsEdit("history"), "days.", None],
-      ["Try to limit texts and lessons to between", SettingsEdit("min_chars"),
-        "and", SettingsEdit("max_chars"), "characters.", None],
-      [SettingsCheckBox('break_sentences', "Break long sentences when importing external text."), None],
-      ["When selecting easy/difficult texts, pick the best from a sample of",
-        SettingsEdit('num_rand'), "texts.", None],
-      ["When grouping by sitting on the Performance tab, consider results more than",
-        SettingsEdit('minutes_in_sitting'), "minutes away to be part of a different sitting.", None],
-      ["Group by", SettingsEdit('def_group_by'), "results when displaying last scores and showing last results on the Typer tab.", None],
-      ["When smoothing out the graph, display a running average of", SettingsEdit('dampen_average'), "values", None],
-      None,
-      ["QT5 style is", self.style_box, 'and CSS theme is', SelectCSSBox(), None],
-    ]))
+    self.setLayout(
+      AmphBoxLayout(
+        [
+          ["Typer font is", self.font_lbl, AmphButton("Change...", self.setFont), None],
+          None,
+          [
+            "Input widget",
+            SettingsCombo("which_typer", ["Typer 1.0: copy text", "Typer 2.0 (beta): write in the text itself"]),
+            None,
+          ],
+          None,
+          [
+            SettingsCheckBox("text_force_ascii", "Force unicode to plain ASCII"),
+            ('(‘fancy’ “quotes” → "normal" quotes, <code>æ</code> → <code>ae</code>, etc.)', 1),
+          ],
+          SettingsCheckBox(
+            "auto_review",
+            "Automatically review slow and mistyped words after texts.",
+            toolTip="""Automatically create post-lesson reviews if you didn't meet the WPM/accuracy criteria set on the <b>Sources</b> tab.""",
+          ),
+          SettingsCheckBox("show_last", "Show last result(s) above text in the Typer."),
+          SettingsCheckBox("use_lesson_stats", "Save key/trigram/word statistics from generated lessons."),
+          SettingsCheckBox(
+            "req_space",
+            "Make SPACE mandatory before each session (Typer 1 ONLY)",
+            toolTip="""<b></b>This is generally recommended because otherwise the timing of the very first characer has to be inferred artificially.""",
+          ),
+          None,
+          [
+            AmphGridLayout(
+              [
+                ["TYPER 1 COLORS", "Text Color", "Background"],
+                [
+                  "Correct Input",
+                  SettingsColor("quiz_right_fg", "Foreground"),
+                  SettingsColor("quiz_right_bg", "Background"),
+                ],
+                [
+                  "Wrong Input",
+                  SettingsColor("quiz_wrong_fg", "Foreground"),
+                  SettingsColor("quiz_wrong_bg", "Background"),
+                ],
+                [1 + 1j, 1 + 2j, 2 + 1j, 2 + 2j],
+              ]
+            ),
+            None,
+          ],
+          None,
+          ["Data is considered too old to be included in analysis after", SettingsEdit("history"), "days.", None],
+          [
+            "Try to limit texts and lessons to between",
+            SettingsEdit("min_chars"),
+            "and",
+            SettingsEdit("max_chars"),
+            "characters.",
+            None,
+          ],
+          [SettingsCheckBox("break_sentences", "Break long sentences when importing external text."), None],
+          [
+            "When selecting easy/difficult texts, pick the best from a sample of",
+            SettingsEdit("num_rand"),
+            "texts.",
+            None,
+          ],
+          [
+            "When grouping by sitting on the Performance tab, consider results more than",
+            SettingsEdit("minutes_in_sitting"),
+            "minutes away to be part of a different sitting.",
+            None,
+          ],
+          [
+            "Group by",
+            SettingsEdit("def_group_by"),
+            "results when displaying last scores and showing last results on the Typer tab.",
+            None,
+          ],
+          [
+            "When smoothing out the graph, display a running average of",
+            SettingsEdit("dampen_average"),
+            "values",
+            None,
+          ],
+          None,
+          ["QT5 style is", self.style_box, "and CSS theme is", SelectCSSBox(), None],
+        ]
+      )
+    )
 
     self.updateFont()
 
   def setFont(self):
-    font, ok = QFontDialog.getFont(Settings.getFont('typer_font'), self)
+    font, ok = QFontDialog.getFont(Settings.getFont("typer_font"), self)
     Settings.set("typer_font", str(font.toString()))
     self.updateFont()
 
   def updateFont(self):
     self.font_lbl.setText(Settings.get("typer_font"))
-    qf = Settings.getFont('typer_font')
+    qf = Settings.getFont("typer_font")
     self.font_lbl.setFont(qf)
 
 
 # TODO: remove this
 Settings = AmphSettings()
-

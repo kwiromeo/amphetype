@@ -1,7 +1,3 @@
-
-
-from itertools import *
-import time
 import bisect
 import sqlite3
 import re
@@ -18,16 +14,16 @@ def trimmed_average(total, series):
     cutoff -= series[start][1]
     start += 1
   if cutoff < 0:
-    s += -cutoff * series[start-1][0]
+    s += -cutoff * series[start - 1][0]
     n += -cutoff
 
-  end = len(series)-1
+  end = len(series) - 1
   cutoff = total // 3
   while cutoff > 0:
     cutoff -= series[end][1]
     end -= 1
   if cutoff < 0:
-    s += -cutoff * series[end+1][0]
+    s += -cutoff * series[end + 1][0]
     n += -cutoff
 
   while start <= end:
@@ -35,7 +31,7 @@ def trimmed_average(total, series):
     n += series[start][1]
     start += 1
 
-  return s/n
+  return s / n
 
 
 class Statistic(list):
@@ -49,6 +45,9 @@ class Statistic(list):
       self.flawed_ += 1
 
   def __cmp__(self, other):
+    # Python 3 removed the built-in cmp() function. It is recreated here as a lambda
+    # See https://stackoverflow.com/a/22490617 for details
+    cmp = lambda a, b: (a > b) - (a < b)  # noqa
     return cmp(self.median(), other.median())
 
   def measurement(self):
@@ -60,13 +59,10 @@ class Statistic(list):
       return None
     if l & 1:
       return self[l // 2]
-    return (self[l//2] + self[l//2-1])/2.0
+    return (self[l // 2] + self[l // 2 - 1]) / 2.0
 
   def flawed(self):
     return self.flawed_
-
-
-
 
 
 class MedianAggregate(Statistic):
@@ -76,6 +72,7 @@ class MedianAggregate(Statistic):
 
   def finalize(self):
     return self.median()
+
 
 class MeanAggregate(object):
   def __init__(self):
@@ -89,6 +86,7 @@ class MeanAggregate(object):
 
   def finalize(self):
     return self.sum_ / self.count_ if self.count_ > 0 else None
+
 
 class FirstAggregate(object):
   def __init__(self):
@@ -116,7 +114,7 @@ class AmphDatabase(sqlite3.Connection):
     self.create_aggregate("agg_median", 1, MedianAggregate)
     self.create_aggregate("agg_mean", 2, MeanAggregate)
     self.create_aggregate("agg_first", 1, FirstAggregate)
-    #self.create_aggregate("agg_trimavg", 2, TrimmedAverarge)
+    # self.create_aggregate("agg_trimavg", 2, TrimmedAverarge)
     self.create_function("ifelse", 3, lambda x, y, z: y if x is not None else z)
 
     try:
@@ -129,7 +127,7 @@ class AmphDatabase(sqlite3.Connection):
     self.timecnt_ = 0
 
   def time_group(self, d, x):
-    if abs(x-self.lasttime_) >= d:
+    if abs(x - self.lasttime_) >= d:
       self.timecnt_ += 1
     self.lasttime_ = x
     return self.timecnt_
@@ -140,7 +138,7 @@ class AmphDatabase(sqlite3.Connection):
   def abbreviate(self, x, n):
     if len(x) <= n:
       return x
-    return x[:n-3] + "..."
+    return x[: n - 3] + "..."
 
   def match(self, x):
     if self.regex_.search(x):
@@ -150,6 +148,7 @@ class AmphDatabase(sqlite3.Connection):
   def counter(self):
     self._count += 1
     return self._count
+
   def resetCounter(self):
     self._count = -1
 
@@ -168,9 +167,10 @@ create view text_source as
 
   def executemany_(self, *args):
     super(AmphDatabase, self).executemany(*args)
+
   def executemany(self, *args):
     super(AmphDatabase, self).executemany(*args)
-    #self.commit()
+    # self.commit()
 
   def fetchall(self, *args):
     return self.execute(*args).fetchall()
@@ -183,22 +183,27 @@ create view text_source as
     return g
 
   def getSource(self, source, lesson=None):
-    v = self.fetchall('select rowid from source where name = ? limit 1', (source, ))
+    v = self.fetchall("select rowid from source where name = ? limit 1", (source,))
     if len(v) > 0:
-      self.execute('update source set disabled = NULL where rowid = ?', v[0])
+      self.execute("update source set disabled = NULL where rowid = ?", v[0])
       self.commit()
       return v[0][0]
-    self.execute('insert into source (name,discount) values (?,?)', (source, lesson))
+    self.execute("insert into source (name,discount) values (?,?)", (source, lesson))
     return self.getSource(source)
 
   def getTextContext(self, textid):
-    texts = sorted(DB.fetchall("""
+    texts = sorted(
+      DB.fetchall(
+        """
 select T.rowid,T.id,T.source,T.text
   from text as T, (select rowid,source from text where id=?) as T2
   where T.disabled is null and
     T.source = T2.source
   order by abs(T.rowid - T2.rowid) asc
-  limit 3""", (textid,)))
+  limit 3""",
+        (textid,),
+      )
+    )
     if textid not in [t[1] for t in texts]:
       return (None, None, None)
     if len(texts) == 1:
@@ -208,25 +213,24 @@ select T.rowid,T.id,T.source,T.text
       return (None, texts[0][1:], texts[1][1:])
     if texts[-1][1] == textid:
       return (texts[-2][1:], texts[-1][1:], None)
-    
+
     assert len(texts) == 3 and texts[1][1] == textid
     return (texts[0][1:], texts[1][1:], texts[2][1:])
-
 
 
 dbname = Settings.get("db_name")
 
 # GLOBAL
-DB = sqlite3.connect(dbname,5,0,"DEFERRED",False,AmphDatabase)
+DB = sqlite3.connect(dbname, 5, 0, "DEFERRED", False, AmphDatabase)
+
 
 def switchdb(nn):
   global DB
   DB.commit()
   try:
-    nDB = sqlite3.connect(nn,5,0,"DEFERRED",False,AmphDatabase)
+    nDB = sqlite3.connect(nn, 5, 0, "DEFERRED", False, AmphDatabase)
     DB = nDB
   except Exception as e:
     from PyQt5.QtGui import QMessageBox as qmb
+
     qmb.information(None, "Database Error", "Failed to switch to the new database:\n" + str(e))
-
-

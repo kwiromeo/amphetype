@@ -78,7 +78,7 @@ exe = EXE(
 app = BUNDLE(
     exe,
     name='Amphetype.app',
-    # icon='amphetype/data/icon.icns',  # If you have an icon file, specify its path here
+    icon='amphetype/data/amphetype_mac_icon.icns',  # If you have an icon file, specify its path here
     bundle_identifier='com.franksh.amphetype',
     info_plist={
         'CFBundleShortVersionString': VERSION,

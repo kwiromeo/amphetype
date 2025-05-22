@@ -1,8 +1,7 @@
+from PyQt5.QtCore import QObject, pyqtSignal, QSettings
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QDoubleSpinBox, QSpinBox
 
-
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QSpinBox, QDoubleSpinBox
 from amphetype.fwidgets import FColorButton
 
 
@@ -47,7 +46,7 @@ class FValueVar(FVar):
     raise NotImplementedError
 
   def spin_box(self, min, max=None, step=None):
-    if not hasattr(self, '_spin_box_class'):
+    if not hasattr(self, "_spin_box_class"):
       raise NotImplementedError
 
     if max is None:
@@ -55,9 +54,8 @@ class FValueVar(FVar):
     if step is None:
       step = self.convert(1)
 
-    return self._spin_box_class(
-      minimum=min, maximum=max, singleStep=step,
-      value=self.get(), valueChanged=self.set)
+    return self._spin_box_class(minimum=min, maximum=max, singleStep=step, value=self.get(), valueChanged=self.set)
+
 
 class FIntVar(FValueVar):
   onValue = pyqtSignal(int)
@@ -65,7 +63,8 @@ class FIntVar(FValueVar):
 
   def convert(self, val):
     return int(val)
-  
+
+
 class FFloatVar(FValueVar):
   onValue = pyqtSignal(float)
   _spin_box_class = QDoubleSpinBox
@@ -80,23 +79,24 @@ class FColorVar(FValueVar):
   def convert(self, val):
     return QColor(val)
 
-  def button(self, text=''):
+  def button(self, text=""):
     return FColorButton(self, text)
-  
+
+
 class FBoolVar(FValueVar):
   onValue = pyqtSignal(bool)
 
   def convert(self, val):
     if isinstance(val, str):
-      return False if not val or val.lower() == 'false' else True
+      return False if not val or val.lower() == "false" else True
     if isinstance(val, (bool, int)):
       return val
-    raise TypeError(f'invalid type given for bool variable {type(val)}')
+    raise TypeError(f"invalid type given for bool variable {type(val)}")
 
 
 class FChoiceVar(FValueVar):
   onValue = pyqtSignal(int)
-  
+
   def __init__(self, parent, name, val, choices):
     self._choices = list(choices)
     super().__init__(parent, name, val)
@@ -114,7 +114,7 @@ class FChoiceVar(FValueVar):
       pass
     val = int(val)
     if not (0 <= val < len(self._choices)):
-      raise ValueError(f'{val} neither an index nor value in {self._choices}')
+      raise ValueError(f"{val} neither an index nor value in {self._choices}")
     return val
 
 
@@ -123,10 +123,10 @@ class FGroupVar(FVar):
     return self(name).get()
 
   def __setitem__(self, name, value):
-    self(name).set(val)
+    self(name).set(value)
 
   def __call__(self, name):
-    obj = self.findChild(FVar, self.objectName() + '/' + name)
+    obj = self.findChild(FVar, self.objectName() + "/" + name)
     if not obj:
       raise ValueError(f"variable not found: {name}")
     return obj
@@ -169,14 +169,14 @@ class FSettings(QSettings):
     elif isinstance(val, bool):
       obj = FBoolVar(parent, name, actual)
     else:
-      raise RuntimeError(f'unknown type {type(val)} for {name}')
+      raise RuntimeError(f"unknown type {type(val)} for {name}")
 
     return obj
 
   def makeSettings(self, name, opts=None, parent=None):
     grp = FGroupVar(parent or self, name)
     for k, v in opts.items():
-      obj = self.create(grp, name + '/' + k, v)
+      obj = self.create(grp, name + "/" + k, v)
       obj.onChange.connect(grp.onChange)
     if not parent:
       grp.onChange.connect(self.varChanged)
@@ -184,4 +184,3 @@ class FSettings(QSettings):
 
   def varChanged(self, obj):
     self.setValue(obj.objectName(), obj.get())
-
