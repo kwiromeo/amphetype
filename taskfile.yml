@@ -1,0 +1,18 @@
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+    silent: true
+
+  run-app:
+    cmds:
+      - python -c "from amphetype.main import main_normal; main_normal()"
+
+  clean-build:
+    cmds:
+      - rm -rf build dist
+
+  build-app:
+    - pyinstaller --clean amphetype-mac.spec
