@@ -15,4 +15,5 @@ tasks:
       - rm -rf build dist
 
   build-app:
-    - pyinstaller --clean amphetype-mac.spec
+    cmds:
+      - pyinstaller --clean amphetype-mac.spec

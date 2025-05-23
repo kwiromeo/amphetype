@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amphetype"
+description = "Advanced typing practice program"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0"}
+keywords = ["typing", "keyboard", "typist", "wpm", "colemak", "dvorak", "workman"]
+authors = [
+    {name = "Frank S. Hestvik", email = "tristesse@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "PyQt5",
+    "translitcodec",
+    "editdistance",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller==6.13.0",
+]
+
+[project.urls]
+Homepage = "https://gitlab.com/franksh/amphetype"
+Repository = "https://gitlab.com/franksh/amphetype"
+
+[project.gui-scripts]
+amphetype = "amphetype.main:main_normal"
+
+[tool.setuptools]
+packages = ["amphetype", "amphetype.Widgets"]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {file = "amphetype/VERSION"}
+
+[tool.setuptools.package-data]
+amphetype = [
+    "VERSION",
+    "data/texts/*.txt",
+    "data/css/*.qss",
+    "data/about.html",
+    "data/wordlists/*.txt"
+]
