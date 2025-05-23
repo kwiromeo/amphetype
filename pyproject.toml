@@ -33,12 +33,13 @@ dev = [
 [project.urls]
 Homepage = "https://gitlab.com/franksh/amphetype"
 Repository = "https://gitlab.com/franksh/amphetype"
+Github = "https://github.com/fsh/amphetype"
 
 [project.gui-scripts]
 amphetype = "amphetype.main:main_normal"
 
 [tool.setuptools]
-packages = ["amphetype", "amphetype.Widgets"]
+packages = ["amphetype"]
 zip-safe = false
 include-package-data = true
 
