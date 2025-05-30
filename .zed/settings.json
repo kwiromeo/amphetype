@@ -6,6 +6,9 @@
   "languages": {
     "Python": {
       "language_servers": ["ruff"]
+    },
+    "HTML": {
+      "preferred_line_length": 120
     }
   }
 }
