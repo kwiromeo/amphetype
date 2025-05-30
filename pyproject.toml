@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amphetype"
+description = "Advanced typing practice program"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0"}
+keywords = ["typing", "keyboard", "typist", "wpm", "colemak", "dvorak", "workman"]
+authors = [
+    {name = "Frank S. Hestvik", email = "tristesse@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "PyQt5",
+    "translitcodec",
+    "editdistance",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller==6.13.0",
+]
+
+[project.urls]
+Homepage = "https://gitlab.com/franksh/amphetype"
+Repository = "https://gitlab.com/franksh/amphetype"
+Github = "https://github.com/fsh/amphetype"
+
+[project.gui-scripts]
+amphetype = "amphetype.main:main_normal"
+
+[tool.setuptools]
+packages = ["amphetype"]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {file = "amphetype/VERSION"}
+
+[tool.setuptools.package-data]
+amphetype = [
+    "VERSION",
+    "data/texts/*.txt",
+    "data/css/*.qss",
+    "data/about.html",
+    "data/wordlists/*.txt"
+]
+
+[tool.ruff]
+line-length = 120
+indent-width = 2
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+
+[tool.ruff.lint]
+# Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+select = ["E4", "E7", "E9", "F", "B"]
+
+# Avoid enforcing line-length violations (`E501`)
+ignore = ["E501"]
+
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
+"__init__.py" = ["E402"]
+"**/{tests,docs,tools}/*" = ["E402"]
