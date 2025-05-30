@@ -57,7 +57,7 @@ class LessonMiner(QObject):
     super(LessonMiner, self).__init__()
     # print time.clock()
     with codecs.open(fname, "r", "utf_8_sig") as f:
-      self.paras = self.para_split(f)
+      self.paras = self.split_paragraph(f)
     self.lessons = None
     self.min_chars = Settings.get("min_chars")
     self._break_sentences = Settings.get("break_sentences")
@@ -100,7 +100,7 @@ class LessonMiner(QObject):
       self.doIt()
     return iter(self.lessons)
 
-  def para_split(self, f):
+  def split_paragraph(self, f):
     p = []
     ps = []
     for l in f:

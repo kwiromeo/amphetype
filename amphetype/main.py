@@ -17,3 +17,7 @@ def main_portable():
 
   sys.argv.append("--local")
   return main_normal()
+
+
+if __name__ == "__main__":
+  main_normal()
