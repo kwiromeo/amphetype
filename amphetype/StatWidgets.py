@@ -1,5 +1,5 @@
 import time
-
+import lesson_builder
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
@@ -43,21 +43,21 @@ class StringStats(QWidget):
     tw.setAlternatingRowColors(True)
     self.stats = tw
 
-    ob = SettingsCombo(
-      "ana_which",
-      [
-        ("wpm asc", "slowest"),
-        ("wpm desc", "fastest"),
-        ("viscosity desc", "least fluid"),
-        ("viscosity asc", "most fluid"),
-        ("accuracy asc", "least accurate"),
-        ("misses desc", "most mistyped"),
-        ("total desc", "most common"),
-        ("damage desc", "most damaging"),
-      ],
-    )
+    self._item_kind_options = ["keys", "trigrams", "words"]
+    self._statistic_options = [
+      ("wpm asc", "slowest"),
+      ("wpm desc", "fastest"),
+      ("viscosity desc", "least fluid"),
+      ("viscosity asc", "most fluid"),
+      ("accuracy asc", "least accurate"),
+      ("misses desc", "most mistyped"),
+      ("total desc", "most common"),
+      ("damage desc", "most damaging"),
+    ]
 
-    wc = SettingsCombo("ana_what", ["keys", "trigrams", "words"])
+    ob = SettingsCombo("ana_which", self._statistic_options)
+
+    wc = SettingsCombo("ana_what", self._item_kind_options)
     lim = SettingsEdit("ana_many")
     self.w_count = SettingsEdit("ana_count")
 
@@ -66,6 +66,10 @@ class StringStats(QWidget):
     Settings.signal_for("ana_many").connect(self.update)
     Settings.signal_for("ana_count").connect(self.update)
     Settings.signal_for("history").connect(self.update)
+
+    # extract statistics selections from global settings object
+    selected_statistic = Settings.get("ana_which")
+    selected_item_kind = self._item_kind_options[Settings.get("ana_what")]
 
     self.setLayout(
       AmphBoxLayout(
@@ -79,6 +83,12 @@ class StringStats(QWidget):
             None,
             AmphButton(
               "Send List to Lesson Generator", lambda: self.lessonStrings.emit([x[0] for x in self.model.words])
+            ),
+            AmphButton(
+              "Smart Lesson From List Items",
+              lambda: lesson_builder.process_words(
+                words=self.model.words, item_kind=selected_item_kind, statistic_type=selected_statistic
+              ),
             ),
           ],
           (self.stats, 1),
