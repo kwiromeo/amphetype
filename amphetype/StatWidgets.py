@@ -1,4 +1,5 @@
 import time
+
 import lesson_builder
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget
@@ -86,8 +87,10 @@ class StringStats(QWidget):
             ),
             AmphButton(
               "Smart Lesson From List Items",
-              lambda: lesson_builder.process_words(
-                words=self.model.words, item_kind=selected_item_kind, statistic_type=selected_statistic
+              lambda: self.lessonStrings.emit(
+                lesson_builder.create_lesson(
+                  issues_list=self.model.words, item_kind=selected_item_kind, statistic_type=selected_statistic
+                )
               ),
             ),
           ],
