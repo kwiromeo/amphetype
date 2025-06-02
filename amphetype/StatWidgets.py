@@ -1,12 +1,13 @@
 import time
 
-import lesson_builder
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
 from amphetype.Config import Settings, SettingsCombo, SettingsEdit
 from amphetype.Data import DB
 from amphetype.QtUtil import AmphBoxLayout, AmphButton, AmphModel, AmphTree
+
+from . import lesson_builder
 
 # from amphetype.Text import LessonGeneratorPlain
 
