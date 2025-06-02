@@ -380,7 +380,7 @@ _bothered = False
 def force_ascii(txt):
   try:
     import codecs
-
+    import translitcodec # noqa
     return codecs.encode(txt, "translit/long")
   except ImportError:
     # What do we do here?
