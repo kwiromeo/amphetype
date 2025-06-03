@@ -100,6 +100,11 @@ class StringStats(QWidget):
       )
     )
 
+    # After layout is set, update the list so that it is populated with items
+    # This avoids the need to always click update list when a users first gets
+    # to the Statistic page of the application
+    self.update()
+
   def update(self, *arg):
     ord = Settings.get("ana_which")
     cat = Settings.get("ana_what")
