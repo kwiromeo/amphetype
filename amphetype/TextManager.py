@@ -85,7 +85,15 @@ Good luck!""",
     tv = AmphTree(self.model)
     tv.doubleClicked["QModelIndex"].connect(self.onDoubleClicked)
     tv.resizeColumnToContents(0)
-    tv.setColumnWidth(0, max(300, tv.columnWidth(0) + 40))
+    tv.setColumnWidth(0, max(340, tv.columnWidth(0) + 40))
+
+    # Set column size of tree view columns in Text Manager
+    # This prevents having a bottom scroll wheel to view all the fields in the
+    # tree view
+    tv.setColumnWidth(1, min(60, tv.columnWidth(1) + 10))
+    tv.setColumnWidth(2, min(60, tv.columnWidth(2) + 10))
+    tv.setColumnWidth(3, min(60, tv.columnWidth(3) + 10))
+    tv.setColumnWidth(4, min(60, tv.columnWidth(4) + 10))
     self.tree = tv
 
     self.progress = QProgressBar()
@@ -380,7 +388,8 @@ _bothered = False
 def force_ascii(txt):
   try:
     import codecs
-    import translitcodec # noqa
+    import translitcodec  # noqa
+
     return codecs.encode(txt, "translit/long")
   except ImportError:
     # What do we do here?
