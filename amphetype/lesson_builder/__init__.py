@@ -10,6 +10,7 @@ class StatisticKind(StrEnum):
   KEY = "key"
   WORD = "word"
   TRIGRAM = "trigam"
+  UNKNOWN = "unknown"
 
 
 @dataclass
@@ -45,6 +46,19 @@ def process_words(words, item_kind, statistic_type) -> Optional[Iterable[Statist
   return stat_entries
 
 
+def determine_statistic_kind(stat_kind_str: str) -> StatisticKind:
+  if stat_kind_str == str(StatisticKind.KEY):
+    return StatisticKind.KEY
+
+  if stat_kind_str == str(StatisticKind.TRIGRAM):
+    return StatisticKind.TRIGRAM
+
+  if stat_kind_str == str(StatisticKind.WORD):
+    return StatisticKind.WORD
+
+  return StatisticKind.UNKNOWN
+
+
 def create_lesson(issues_list, item_kind, statistic_type) -> Iterable[str]:
   """
   `create_lesson` takes in the issues listed in the statistic widget and returns a customized
@@ -63,20 +77,28 @@ def create_lesson(issues_list, item_kind, statistic_type) -> Iterable[str]:
 
   sorted_stat_entries = sorted(stat_entries, key=get_viscosity)
 
+  return _create_lesson_for_trigrams(stat_entries=sorted_stat_entries)
+
+
+def _create_lesson_for_keys(issues_list, item_kind, statistic_type) -> Iterable[str]:
+  pass
+
+
+def _create_lesson_for_trigrams(stat_entries: Iterable[StatisticEntry]) -> Iterable[str]:
   # get source words
   short_words = common_words.get_short_words()
-  # medium_words = common_words.get_medium_words()
+  # newlist = [expression for item in iterable if condition == True]
+  medium_words = [word for word in common_words.get_medium_words() if len(word) <= 7]
 
   source_list = []
   source_list.extend(short_words)
-  # source_list.extend(medium_words)
+  source_list.extend(medium_words)
 
   # find words that contains the most key/trigrams/words
   found_matches = dict()
 
-  for entry in sorted_stat_entries:
+  for entry in stat_entries:
     query = entry.item.strip().lower()
-
     for word in source_list:
       if query in word:
         query_matches = found_matches.get(query)
@@ -97,3 +119,7 @@ def create_lesson(issues_list, item_kind, statistic_type) -> Iterable[str]:
   random.shuffle(lesson_words)
 
   return lesson_words
+
+
+def _create_lesson_for_words(issues_list, item_kind, statistic_type) -> Iterable[str]:
+  pass
