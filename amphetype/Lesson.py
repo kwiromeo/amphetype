@@ -140,6 +140,7 @@ class LessonGenerator(QWidget):
           [
             (
               [
+                "Source words (used to generate lessons)",
                 (self.strings, 1),
                 [
                   SettingsCombo("str_clear", [("s", "Supplement"), ("r", "Replace")]),
