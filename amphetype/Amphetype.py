@@ -8,7 +8,6 @@ import sys
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut, QTabWidget, QTextBrowser
-
 from amphetype import *
 
 
@@ -38,6 +37,7 @@ from pathlib import Path
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
+from amphetype.lesson_builder.widget import AdvancedLessonGenerator
 from amphetype.Config import GeneralOptions, TyperOptions
 from amphetype.fwidgets import FStackedWidget
 from amphetype.Lesson import LessonGenerator
@@ -91,6 +91,9 @@ class AmphetypeWindow(QMainWindow):
     quiz.wantReview.connect(lg.wantReview)
     lg.newReview.connect(tm.newReview)
     tabs.addTab(lg, "Lesson Generator")
+
+    advanced_lesson_generator = AdvancedLessonGenerator()
+    tabs.addTab(advanced_lesson_generator, "Advanced Lesson Generator")
 
     ph.setText.connect(tm.emit_text)
     tm.setText.connect(tw.setText)

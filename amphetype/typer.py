@@ -519,6 +519,7 @@ class TyperWindow(QWidget):
         % self._settings.get("def_group_by"),
         (0.0, 100.0),
       )
+      # TODO: insert error keys here
       self.updateLabel("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0 * acc) + v2))
 
     self.DB.commit()
