@@ -122,5 +122,5 @@ class StringStats(QWidget):
           from statistic where w >= ? and type = ? group by data)
         where total >= ?
         order by %s limit %d""" % (ord, limit)
-
-    self.model.setData(DB.fetchall(sql, (hist, cat, count)))
+    query_results = DB.fetchall(sql, (hist, cat, count))
+    self.model.setData(query_results)
