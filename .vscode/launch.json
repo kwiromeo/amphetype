@@ -11,5 +11,12 @@
             "program": "${workspaceFolder}/amphetype/main.py",
             "console": "integratedTerminal"
         },
+        {
+            "name": "Launch via Bootstrap.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/bootstrap.py",
+            "console": "integratedTerminal"
+        },
     ]
 }

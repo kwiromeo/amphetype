@@ -2,7 +2,7 @@ import random
 import time
 from itertools import islice
 
-import editdistance
+from polyleven import levenshtein
 from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QTextOption
 from PyQt5.QtWidgets import QFileDialog, QLineEdit, QMessageBox, QTextEdit, QWidget
@@ -75,7 +75,7 @@ class StringListWidget(QTextEdit):
         words = (word for word in words if any(c in word for c in control))
       else:  # similar
         words = filter(
-          lambda word: min(editdistance.eval(word, c) / max(len(word), len(c), 1) for c in control) < 0.26, words
+          lambda word: min(levenshtein(word, c) / max(len(word), len(c), 1) for c in control) < 0.26, words
         )
 
     if Settings.get("str_clear") == "r":  # replace = clear

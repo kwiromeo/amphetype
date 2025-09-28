@@ -21,13 +21,13 @@ classifiers = [
 dependencies = [
     "PyQt5",
     "translitcodec",
-    "editdistance",
+    "polyleven",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
-    "pyinstaller==6.13.0",
+    "pyinstaller>=6.13.0",
 ]
 
 [project.urls]
