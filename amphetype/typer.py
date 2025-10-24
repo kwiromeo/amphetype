@@ -474,7 +474,7 @@ class TyperWindow(QWidget):
       text.append("Text ready for typing!")
     text.append("Press ESCAPE to cancel at any time.")
     text.append(
-      "This input widget is BETA and uses a <d>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!"
+      "This input widget is BETA and uses a <b>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!"
     )
     self._label.setText("<br />".join(text))
 
