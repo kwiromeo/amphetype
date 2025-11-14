@@ -123,8 +123,9 @@ class AmphetypeWindow(QMainWindow):
 class AboutWidget(QTextBrowser):
   def __init__(self, *args):
     try:
-      html = (Settings.DATA_DIR / "about.html").open("r").read()
-    except:
+      about_filepath = Settings.DATA_DIR / "about.html"
+      html = about_filepath.open(mode="r", encoding="UTF-8").read()
+    except Exception:
       html = "Amphetype v.${VERSION}<br />about.html file missing or could not be loaded!"
     html = html.replace("${VERSION}", __version__)
     super(AboutWidget, self).__init__(*args)
