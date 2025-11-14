@@ -1,4 +1,8 @@
 {
+    "python.analysis.typeCheckingMode": "standard",
     "cSpell.allowCompoundWords": true,
-    "python.analysis.typeCheckingMode": "standard"
+    "cSpell.words": [
+        "Amph",
+        "amphetype"
+    ]
 }
