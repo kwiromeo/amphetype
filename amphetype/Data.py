@@ -169,7 +169,7 @@ create view text_source as
     super(AmphDatabase, self).executemany(*args)
 
   def executemany(self, *args):
-    super(AmphDatabase, self).executemany(*args)
+    return super(AmphDatabase, self).executemany(*args)
     # self.commit()
 
   def fetchall(self, *args):
@@ -191,7 +191,7 @@ create view text_source as
     self.execute("insert into source (name,discount) values (?,?)", (source, lesson))
     return self.getSource(source)
 
-  def getTextContext(self, textid):
+  def getTextContext(self, text_id):
     texts = sorted(
       DB.fetchall(
         """
@@ -201,20 +201,20 @@ select T.rowid,T.id,T.source,T.text
     T.source = T2.source
   order by abs(T.rowid - T2.rowid) asc
   limit 3""",
-        (textid,),
+        (text_id,),
       )
     )
-    if textid not in [t[1] for t in texts]:
+    if text_id not in [t[1] for t in texts]:
       return (None, None, None)
     if len(texts) == 1:
       return (None, texts[0][1:], None)
 
-    if texts[0][1] == textid:
+    if texts[0][1] == text_id:
       return (None, texts[0][1:], texts[1][1:])
-    if texts[-1][1] == textid:
+    if texts[-1][1] == text_id:
       return (texts[-2][1:], texts[-1][1:], None)
 
-    assert len(texts) == 3 and texts[1][1] == textid
+    assert len(texts) == 3 and texts[1][1] == text_id
     return (texts[0][1:], texts[1][1:], texts[2][1:])
 
 
