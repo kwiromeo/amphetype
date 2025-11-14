@@ -3,7 +3,16 @@ from collections import Counter, defaultdict
 from time import time
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QBrush, QColor, QTextBlockFormat, QTextCharFormat, QTextCursor, QTextDocument
+from PyQt5.QtGui import (
+  QBrush,
+  QColor,
+  QMoveEvent,
+  QShowEvent,
+  QTextBlockFormat,
+  QTextCharFormat,
+  QTextCursor,
+  QTextDocument,
+)
 from PyQt5.QtWidgets import QApplication, QLabel, QProgressBar, QSizePolicy, QTextEdit, QWidget
 
 from amphetype import timer
@@ -437,9 +446,14 @@ class TyperWindow(QWidget):
   def updateFont(self):
     self._doc.setDefaultFont(self._settings.getFont("typer_font"))
 
-  def showEvent(self, evt):
+  def showEvent(self, a0: QShowEvent):
     self._typer.setFocus()
-    return super().showEvent(evt)
+    self.updateFont()
+    return super().showEvent(a0)
+  
+  def moveEvent(self, a0: QMoveEvent) -> None:
+    self.updateFont()
+    return super().moveEvent(a0)
 
   def typingReady(self, text):
     self._prog_layout.setCurrentIndex(0)
@@ -474,7 +488,7 @@ class TyperWindow(QWidget):
       text.append("Text ready for typing!")
     text.append("Press ESCAPE to cancel at any time.")
     text.append(
-      "This input widget is BETA and uses a <d>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!"
+      "This input widget is BETA and uses a <b>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!"
     )
     self._label.setText("<br />".join(text))
 
