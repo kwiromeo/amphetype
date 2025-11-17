@@ -403,6 +403,13 @@ class TyperWindow(QWidget):
     self._typer = TyperWidget(self.S)
     hack = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Ignored)
     self._label = QLabel(wordWrap=True, sizePolicy=hack)
+    label_stylesheet = """ 
+      font-size: 12pt;
+      font-family: arial;
+      """
+    self._label.setStyleSheet(label_stylesheet)
+    self._viscosity_warning_shown = False
+
     self._prog = QProgressBar()
     self._progw = FStackedWidget([QLabel("Type like the wind!"), self._prog])
     self._prog_layout = FStackedWidget([self._label, self._progw])
@@ -450,7 +457,7 @@ class TyperWindow(QWidget):
     self._typer.setFocus()
     self.updateFont()
     return super().showEvent(a0)
-  
+
   def moveEvent(self, a0: QMoveEvent) -> None:
     self.updateFont()
     return super().moveEvent(a0)
@@ -479,17 +486,23 @@ class TyperWindow(QWidget):
     text = []
     # text.append("[This beta typer will not collect statistics currently, don't use it!]")
     if msg is not None:
-      text.append("<big><b>" + msg + "</b></big>")
-      text.append("")
+      text.extend(["<b>" + msg + "</b>", ""])
 
     if self.S["require_space"]:
-      text.append("Press SPACE to start typing the text.")
+      text.append("Press <b>SPACE</b> to start typing the text.")
     else:
       text.append("Text ready for typing!")
-    text.append("Press ESCAPE to cancel at any time.")
-    text.append(
-      "This input widget is BETA and uses a <b>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!"
-    )
+    text.append("Press <b>ESCAPE</b> to cancel at any time.")
+    if not self._viscosity_warning_shown:
+      text.extend(
+        [
+          "",
+          "This input widget is BETA and uses a <b>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!",
+          "",
+        ]
+      )
+      self._viscosity_warning_shown = True
+
     self._label.setText("<br />".join(text))
 
   def typingFailed(self, txt):
