@@ -1,17 +1,27 @@
 <html>
     <head>
         <style>
+            html {
+                font-size: 22px;
+                line-height: 22px;
+            }
+            body {
+                margin-left: 100px;
+                margin-right: 100px;
+            }
             dt {
                 font-weight: bold;
             }
 
             dl,
             dd {
-                font-size: 0.9rem;
+                font-size: 1.25rem;
+                line-height: 1.5;
+                margin-top: 4px;
             }
 
-            dd {
-                margin-bottom: 1em;
+            .entry-spacing {
+                margin-top: 24px;
             }
         </style>
     </head>
@@ -25,14 +35,16 @@
         <p>Made with love by Frank &lt;<a href="mailto:tristesse@gmail.com">tristesse@gmail.com</a>&gt;</p>
 
         <dl>
+            <!--Lesson-->
             <dt>Lesson</dt>
             <dd>
                 A text of suitable length. This could be anything: an excerpt from a book or file, just a random
                 collection of words (as an auto-generated lesson), and so on.
             </dd>
-
+            <div class="entry-spacing"></div>
+            
+            <!--Source-->
             <dt>Source</dt>
-            <dd></dd>
             <dd>
                 A named collection of lessons, for example the name of a file. A source is generated automatically when
                 importing a file. After import the file is no longer needed as the lessons are stored in Amphetype's
@@ -40,13 +52,17 @@
             </dd>
 
             <dd>(To delete a full source, [disable] all its lessons, and then [delete disabled].)</dd>
-
+            <div class="entry-spacing"></div>
+            
+            <!--Words per minute-->
             <dt>WPM (words per minute)</dt>
             <dd>
                 This is <em>defined</em> as 12 x (keys per second), i.e. the a "word" is defined as five keypresses.
             </dd>
-
-            <dt>portable install (database and settings)</dt>
+            <div class="entry-spacing"></div>
+            
+            <!--portable install-->
+            <dt>Portable install (database and settings)</dt>
             <dd>
                 The settings is (by default) stored in a file called amphetype.ini. Its location varies based on OS, but
                 it should be where programs usually store configs. The database (containing all statistics as well as
@@ -72,7 +88,9 @@
                 (On the other side of the spectrum, for more advanced usage, you can also use environment variables to
                 set most of these options, like AMPH_LOGFILE, AMPH_SETTINGS, AMPH_LOCAL.)
             </dd>
+            <div class="entry-spacing"></div>
 
+            <!--Viscosity-->
             <dt>Viscosity</dt>
             <dd>
                 When I originally wrote the program and started pushing myself to type faster, I noticed there were
@@ -87,10 +105,14 @@
                 is very well thought out, nor theoretically sound. You can probably ignore this number. I'm not really
                 sure what the best measure would be.
             </dd>
-
+            <div class="entry-spacing"></div>
+            
+            <!--Key shortcuts-->
             <dt>Key shortcuts</dt>
             <dd>Ctrl-Q quits.</dd>
+            <div class="entry-spacing"></div>
 
+            <!--Can't type character-->
             <dt>Can't type character / refuses to accept input</dt>
             <dd>
                 Amphetype requires the exact character as input. If the text asks for "—" (em dash) then "-" (hyphen)
@@ -102,7 +124,9 @@
                 editor that might change the text in unexpected ways on save (like Microsoft Word?). Be careful also
                 when copy-pasting text from the web, so it doesn't contain weirdness like invisible space characters.
             </dd>
-
+            <div class="entry-spacing"></div>
+            
+            <!--More Help-->
             <dt>More help</dt>
             <dd>
                 For more help, check out the
@@ -173,8 +197,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/.
-</pre
-            >
+</pre>
         </small>
     </body>
 </html>
