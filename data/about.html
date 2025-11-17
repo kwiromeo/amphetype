@@ -23,17 +23,23 @@
             .entry-spacing {
                 margin-top: 24px;
             }
+            .license {
+                margin: 24px;
+                padding-bottom: 24px !important;
+                font-family:'Courier New', Courier, monospace;
+                font-size: 1.25rem;
+                line-height: 1.2;
+            }
         </style>
     </head>
     <body>
         <h1>Amphetype</h1>
-
         <p>
             <big>Version <strong>${VERSION}</strong></big>
         </p>
-
-        <p>Made with love by Frank &lt;<a href="mailto:tristesse@gmail.com">tristesse@gmail.com</a>&gt;</p>
-
+        <p>
+            Made with love by Frank &lt;<a href="mailto:tristesse@gmail.com">tristesse@gmail.com</a>&gt;
+        </p>
         <dl>
             <!--Lesson-->
             <dt>Lesson</dt>
@@ -42,7 +48,6 @@
                 collection of words (as an auto-generated lesson), and so on.
             </dd>
             <div class="entry-spacing"></div>
-            
             <!--Source-->
             <dt>Source</dt>
             <dd>
@@ -50,17 +55,16 @@
                 importing a file. After import the file is no longer needed as the lessons are stored in Amphetype's
                 internal database.
             </dd>
-
-            <dd>(To delete a full source, [disable] all its lessons, and then [delete disabled].)</dd>
+            <dd>
+                (To delete a full source, [disable] all its lessons, and then [delete disabled].)
+            </dd>
             <div class="entry-spacing"></div>
-            
             <!--Words per minute-->
             <dt>WPM (words per minute)</dt>
             <dd>
                 This is <em>defined</em> as 12 x (keys per second), i.e. the a "word" is defined as five keypresses.
             </dd>
             <div class="entry-spacing"></div>
-            
             <!--portable install-->
             <dt>Portable install (database and settings)</dt>
             <dd>
@@ -79,7 +83,9 @@
                 Another alternative is to use the command line parameter "--local" which makes Amphetype read/save its
                 local data wherever it is installed (for example on a USB drive).
             </dd>
-            <dd>See also "--help" for more command line options.</dd>
+            <dd>
+                See also "--help" for more command line options.
+            </dd>
             <dd>
                 If you don't know what command line parameters are or how to specify them, the best I can do is try
                 searching for "windows how to edit command line parameters" or similar.
@@ -89,7 +95,6 @@
                 set most of these options, like AMPH_LOGFILE, AMPH_SETTINGS, AMPH_LOCAL.)
             </dd>
             <div class="entry-spacing"></div>
-
             <!--Viscosity-->
             <dt>Viscosity</dt>
             <dd>
@@ -106,12 +111,12 @@
                 sure what the best measure would be.
             </dd>
             <div class="entry-spacing"></div>
-            
             <!--Key shortcuts-->
             <dt>Key shortcuts</dt>
-            <dd>Ctrl-Q quits.</dd>
+            <dd>
+                Ctrl-Q quits.
+            </dd>
             <div class="entry-spacing"></div>
-
             <!--Can't type character-->
             <dt>Can't type character / refuses to accept input</dt>
             <dd>
@@ -125,7 +130,6 @@
                 when copy-pasting text from the web, so it doesn't contain weirdness like invisible space characters.
             </dd>
             <div class="entry-spacing"></div>
-            
             <!--More Help-->
             <dt>More help</dt>
             <dd>
@@ -134,7 +138,6 @@
                 shoot me a message on GitLab or add an issue there (or email me).
             </dd>
         </dl>
-
         <p>
             This is a complicated program so it's tough to cover everything, but an example workflow might be the
             following (which is how I personally used it).
@@ -150,7 +153,6 @@
             </li>
             <li></li>
         </ul>
-
         <h2>Links</h2>
         <ul>
             <li>
@@ -159,45 +161,48 @@
             <li>
                 <a href="https://gitlab.com/franksh/amphetype/-/wikis/FAQ">FAQ</a>
             </li>
-            <li><a href="https://www.gutenberg.org/">Project Gutenberg</a> for more free books in plain text format</li>
+            <li>
+                <a href="https://www.gutenberg.org/">Project Gutenberg</a> for more free books in plain text format
+            </li>
         </ul>
-
         <h2>Additional Details</h2>
         <p>
             Text files from
-            <a href="http://www.gutenberg.org/about/">Project Gutenberg</a>. Word lists from
-            <a href="http://wordlist.sourceforge.net/scowl-readme">SCOWL</a> by Kevin Atkinson. Originally made with
-            PyQt4, later PyQt5 by <a href="http://www.riverbankcomputing.co.uk/">Riverbank Computing</a>, Python
-            bindings for the wonderful Qt GUI library by <a href="http://trolltech.com/">Trolltech</a>. Code less,
-            create more indeed. CSS themes includede are from
+            <a href="https://www.gutenberg.org/about/">Project Gutenberg</a>. Word lists from
+            <a href="https://wordlist.sourceforge.net/scowl-readme">SCOWL</a> by Kevin Atkinson.
+            Originally made with PyQt4, later PyQt5 by
+            <a href="https://www.riverbankcomputing.co.uk/">Riverbank Computing</a>, Python
+            bindings for the wonderful Qt GUI library by <a href="https://trolltech.com/">Trolltech</a>.
+            Code less, create more indeed. CSS themes included are from
             <a href="https://github.com/GTRONICK/QSS">GTRONICK/QSS</a> GitHub project licensed under MIT. You're
             encouraged to modify these.
         </p>
-
         <p>
-            Licenced under the
-            <a href="http://www.gnu.org/licenses/gpl-3.0.html">GNU v3</a>
-            license. See project's LICENSE file for more information.
+            Licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU v3 license</a>.
+            See project's LICENSE file for more information.
         </p>
-
-        <small>
-            <pre>
-    Amphetype - advanced typing program
-    Copyright (C) 2008-2022  Frank S. Hestvik
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/.
-</pre>
-        </small>
+        <div class="license">
+            <p>
+                Amphetype - advanced typing program
+                <br />
+                Copyright (C) 2008-2022  Frank S. Hestvik
+            </p>
+            <p>
+                This program is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
+            </p>
+            <p>
+                This program is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+                GNU General Public License for more details.
+            </p>
+            <p>
+                You should have received a copy of the GNU General Public License
+                along with this program. If not, see http://www.gnu.org/licenses/.
+            </p>
+        </div>
     </body>
 </html>
