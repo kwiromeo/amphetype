@@ -29,9 +29,6 @@ class IncrementalProgress(QProgressBar):
 class DatabaseWidget(QWidget):
   def __init__(self, *args):
     super(DatabaseWidget, self).__init__(*args)
-
-    Settings.signal_for("db_name").connect(self.dbchange)
-
     self.stats_ = QLabel("\nPress Update to fetch database statistics\n")
     self.progress_ = IncrementalProgress(6 + 2)
 
@@ -123,11 +120,7 @@ Analysis data: %d (%d keys, %d trigrams, %d words)
         True,
       )
     )
-
-  def dbchange(self, nn):
-    # DB.switchdb(nn)
-    pass
-
+    
   def cleanup(self):
     day = 24 * 60 * 60
     now = time.time()

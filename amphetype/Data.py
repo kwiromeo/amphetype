@@ -54,12 +54,12 @@ class Statistic(list):
     return trimmed_average(len(self), [(x, 1) for x in self])
 
   def median(self):
-    l = len(self)
-    if l == 0:
+    input_length = len(self)
+    if input_length == 0:
       return None
-    if l & 1:
-      return self[l // 2]
-    return (self[l // 2] + self[l // 2 - 1]) / 2.0
+    if input_length & 1:
+      return self[input_length // 2]
+    return (self[input_length // 2] + self[input_length // 2 - 1]) / 2.0
 
   def flawed(self):
     return self.flawed_
@@ -226,15 +226,3 @@ dbname = Settings.get("db_name")
 
 # GLOBAL
 DB = sqlite3.connect(dbname, 5, 0, "DEFERRED", False, AmphDatabase)
-
-
-def switchdb(nn):
-  global DB
-  DB.commit()
-  try:
-    nDB = sqlite3.connect(nn, 5, 0, "DEFERRED", False, AmphDatabase)
-    DB = nDB
-  except Exception as e:
-    from PyQt5.QtGui import QMessageBox as qmb
-
-    qmb.information(None, "Database Error", "Failed to switch to the new database:\n" + str(e))
