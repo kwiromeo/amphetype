@@ -66,12 +66,13 @@ class Statistic(list):
 
 
 class MedianAggregate(Statistic):
-  def step(self, val):
-    if val is not None:
-      self.append(val)
+  def step(self, value):
+    if value is not None:
+      self.append(value)
 
   def finalize(self):
-    return self.median()
+    result = self.median()
+    return 0 if result is None else int(result)
 
 
 class MeanAggregate(object):
@@ -79,13 +80,16 @@ class MeanAggregate(object):
     self.sum_ = 0.0
     self.count_ = 0
 
-  def step(self, value, count):
+  # TODO: The expected function signature is step(self, value) -> object
+  #       Here, we are passing two parameters.
+  def step(self, value, count) -> None:
     if value is not None and count is not None:
       self.sum_ += value * count
       self.count_ += count
 
   def finalize(self):
-    return self.sum_ / self.count_ if self.count_ > 0 else None
+    result = self.sum_ / self.count_ if self.count_ > 0 else None
+    return 0 if result is None else int(result)
 
 
 class FirstAggregate(object):
@@ -97,7 +101,8 @@ class FirstAggregate(object):
       self.val = val
 
   def finalize(self):
-    return self.val
+    result = 0 if self.val is None else self.val
+    return int(result)
 
 
 class AmphDatabase(sqlite3.Connection):
@@ -114,23 +119,22 @@ class AmphDatabase(sqlite3.Connection):
     self.create_aggregate("agg_median", 1, MedianAggregate)
     self.create_aggregate("agg_mean", 2, MeanAggregate)
     self.create_aggregate("agg_first", 1, FirstAggregate)
-    # self.create_aggregate("agg_trimavg", 2, TrimmedAverarge)
     self.create_function("ifelse", 3, lambda x, y, z: y if x is not None else z)
 
     try:
       self.fetchall("select * from result,source,statistic,text,mistake limit 1")
-    except:
+    except Exception:
       self.newDB()
 
   def resetTimeGroup(self):
     self.lasttime_ = 0.0
-    self.timecnt_ = 0
+    self.time_count_ = 0
 
   def time_group(self, d, x):
     if abs(x - self.lasttime_) >= d:
-      self.timecnt_ += 1
+      self.time_count_ += 1
     self.lasttime_ = x
-    return self.timecnt_
+    return self.time_count_
 
   def setRegex(self, x):
     self.regex_ = re.compile(x)
