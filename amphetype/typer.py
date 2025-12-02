@@ -555,7 +555,7 @@ class TyperWindow(QWidget):
     stats = defaultdict(Statistic)
     visc = defaultdict(Statistic)
 
-    # Collect per-char.
+    # Collect per-char statistics
     for i in range(len(run)):
       sub = run[i : i + 1]
       spc, _, flaw = sub.stats
@@ -581,21 +581,20 @@ class TyperWindow(QWidget):
       stats[sub.text].append(spc, flaw)
       visc[sub.text].append(vc)
 
-    # time, visc, now, count, mistakes, type, data
-
-    vals = []
+    # Update statistic values: time, visc, now, count, mistakes, type, data
+    stat_values = []
     for k, s in stats.items():
-      v = visc[k].median()
-      if v is not None:
-        v *= 100.0
+      viscosity = visc[k].median()
+      if viscosity is not None:
+        viscosity *= 100.0
       tp = 2
       if len(k) == 3:
         tp = 1
       elif len(k) == 1:
         tp = 0
-      vals.append((s.median(), v, now, len(s), s.flawed(), tp, k))
+      stat_values.append((s.median(), viscosity, now, len(s), s.flawed(), tp, k))
 
-    # print(vals)
+    # print(stat_valuess)
 
     is_lesson = self.DB.fetchone("select discount from source where rowid=?", (None,), (srcid,))[0]
 
@@ -606,7 +605,7 @@ class TyperWindow(QWidget):
       (time,viscosity,w,count,mistakes,type,data)
       values (?,?,?,?,?,?,?)
       """,
-        vals,
+        stat_values,
       )
 
       mistakes = Counter((c.char, e) for c in run if c.mistakes > 0 for e in c.errors)
@@ -627,10 +626,11 @@ class TyperWindow(QWidget):
     else:
       mins = self._settings.get("min_wpm"), self._settings.get("min_acc")
 
+    # Determine if to move onto next lesson, repeat, or show review
     if wpm < mins[0] or acc < mins[1] / 100.0:
       self.setText(self._current_lesson)
     elif not is_lesson and self._settings.get("auto_review"):
-      ws = [x for x in vals if x[5] == 2]
+      ws = [x for x in stat_values if x[5] == 2]
       if len(ws) == 0:
         self.wantText.emit()
         return
