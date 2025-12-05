@@ -115,7 +115,6 @@ def _create_lesson_for_trigrams(stat_entries: Iterable[StatisticEntry]) -> Itera
     lesson_words_set.update(match_list)
 
   lesson_words = list(lesson_words_set)
-
   random.shuffle(lesson_words)
 
   return lesson_words
