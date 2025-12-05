@@ -56,7 +56,7 @@ amphetype = [
 ]
 
 [tool.ruff]
-line-length = 120
+line-length = 100
 indent-width = 2
 
 [tool.ruff.format]
