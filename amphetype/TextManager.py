@@ -1,22 +1,22 @@
+import hashlib
 import logging as log
 import os.path as path
 import time
-import hashlib
+import typing
 
-from amphetype.Text import LessonMiner
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtWidgets import QBoxLayout, QFileDialog, QMessageBox, QProgressBar, QWidget
+
+from amphetype.Config import Settings, SettingsCombo, SettingsEdit
 from amphetype.Data import DB
 from amphetype.QtUtil import (
-  AmphModel,
-  AmphTree,
   AmphBoxLayout,
   AmphButton,
   AmphGridLayout,
+  AmphModel,
+  AmphTree,
 )
-from amphetype.Config import Settings, SettingsEdit, SettingsCombo
-
-
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QWidget, QProgressBar, QBoxLayout, QFileDialog, QMessageBox
+from amphetype.Text import LessonMiner
 
 
 class SourceModel(AmphModel):
@@ -69,12 +69,22 @@ class TextManager(QWidget):
   gotoText = pyqtSignal()
   refreshSources = pyqtSignal()
 
+  split_text = [
+    "Welcome to Amphetype!\n",
+    "Amphetype is a layout-agnostic typing program that measures your speed and progress",
+    "while identifying typing problems.\n",
+    "This is just a default text since your database is empty.",
+    'Go to the "Sources" tab and try importing a text.\n',
+    "Several whole novels already come packaged with Amphetype!",
+    "Later on you can generate highly customizable lessons directly from your statistics!\n",
+    "Good luck!",
+  ]
+  welcome_text = " ".join(split_text)
+
   defaultText = (
     "",
     0,
-    """Welcome to Amphetype!
-Amphetype is a layout-agnostic typing program that measures your speed and progress while identifying typing problems. This is just a default text since your database is empty. Go to the "Sources" tab and try importing a text. Several whole novels already come packaged with Amphetype! Later on you can generate highly customizable lessons directly from your statistics!
-Good luck!""",
+    welcome_text,
   )
 
   def __init__(self, *args):
@@ -236,7 +246,7 @@ Good luck!""",
 
   def addTexts(self, source, texts, lesson=None, update=True):
     id = DB.getSource(source, lesson)
-    r = []
+    r: typing.List[str] = []
     for x in texts:
       h = hashlib.sha1()
       h.update(x.encode("utf-8"))
@@ -274,7 +284,8 @@ Good luck!""",
     if type != 1:
       # Not in order
       v = DB.execute(
-        "select id,source,text from text where disabled is null order by random() limit %d" % Settings.get("num_rand")
+        "select id,source,text from text where disabled is null order by random() limit %d"
+        % Settings.get("num_rand")
       ).fetchall()
       if len(v) == 0:
         v = None
@@ -388,6 +399,7 @@ _bothered = False
 def force_ascii(txt):
   try:
     import codecs
+
     import translitcodec  # noqa
 
     return codecs.encode(txt, "translit/long")
