@@ -92,8 +92,8 @@ class AmphetypeWindow(QMainWindow):
     lg.newReview.connect(tm.newReview)
     tabs.addTab(lg, "Lesson Generator")
 
-    advanced_lesson_generator = AdvancedLessonGenerator()
-    tabs.addTab(advanced_lesson_generator, "Advanced Lesson Generator")
+    # advanced_lesson_generator = AdvancedLessonGenerator()
+    # tabs.addTab(advanced_lesson_generator, "Advanced Lesson Generator")
 
     ph.setText.connect(tm.emit_text)
     tm.setText.connect(tw.setText)
