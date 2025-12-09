@@ -6,9 +6,28 @@ import logging as log
 import sys
 
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtGui import QKeySequence, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut, QTabWidget, QTextBrowser
 from amphetype import *
+from enum import Enum
+
+
+class OperatingSystem(Enum):
+  WINDOWS = "win"
+  MAC = "mac"
+  LINUX = "linux"
+  OTHER = "other"
+
+
+def _get_os_name() -> OperatingSystem:
+  if sys.platform.startswith("win"):
+    return OperatingSystem.WINDOWS
+  elif sys.platform.startswith("darwin"):
+    return OperatingSystem.MAC
+  elif sys.platform.startswith("linux"):
+    return OperatingSystem.LINUX
+  else:
+    return OperatingSystem.OTHER
 
 
 # Init QT and set appname.
@@ -57,6 +76,18 @@ class AmphetypeWindow(QMainWindow):
 
     self.quitSc = QShortcut(QKeySequence("Ctrl+Q"), self)
     self.quitSc.activated.connect(QApplication.instance().quit)
+
+    # Set default font size for the application based on the operating system
+    current_os = _get_os_name()
+
+    if current_os is OperatingSystem.WINDOWS:
+      default_font = QFont("Segoe UI", 10)
+    elif current_os is OperatingSystem.MAC:
+      default_font = QFont("Helvetica Neue", 10)
+    else:
+      default_font = QFont("Arial", 10)
+
+    self.setFont(default_font)
 
     tabs = QTabWidget()
 
@@ -143,7 +174,7 @@ def set_qt_css(fname):
       with Path(fname).open("r") as f:
         app.setStyleSheet(f.read())
     else:
-      log.warn("file not found: %s", fname)
+      log.warning("file not found: %s", fname)
 
 
 Settings.signal_for("qt_css").connect(set_qt_css)
