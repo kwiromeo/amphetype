@@ -83,7 +83,7 @@ class AmphetypeWindow(QMainWindow):
     if current_os is OperatingSystem.WINDOWS:
       default_font = QFont("Segoe UI", 10)
     elif current_os is OperatingSystem.MAC:
-      default_font = QFont("Helvetica Neue", 10)
+      default_font = QFont("Helvetica Neue", 14)
     else:
       default_font = QFont("Arial", 10)
 
