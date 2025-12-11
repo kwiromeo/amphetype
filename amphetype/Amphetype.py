@@ -73,9 +73,11 @@ class AmphetypeWindow(QMainWindow):
     super().__init__(*args)
 
     self.setWindowTitle("Amphetype")
-
     self.quitSc = QShortcut(QKeySequence("Ctrl+Q"), self)
-    self.quitSc.activated.connect(QApplication.instance().quit)
+
+    app_instance = QApplication.instance()
+    assert (app_instance is not None), "application instance is none"
+    self.quitSc.activated.connect(app_instance.quit)
 
     # Set default font size for the application based on the operating system
     current_os = _get_os_name()
@@ -91,61 +93,61 @@ class AmphetypeWindow(QMainWindow):
 
     tabs = QTabWidget()
 
-    quiz = Quizzer()
-    tw = TyperWindow()
-    quiztw = FStackedWidget([quiz, tw])
-    tabs.addTab(quiztw, "Typer")
-    quiztw.setCurrentIndex(Settings.get("which_typer"))
-    Settings.signal_for("which_typer").connect(quiztw.setCurrentIndex)
+    quizzer = Quizzer()
+    typer = TyperWindow()
+    quizzer_typer = FStackedWidget([quizzer, typer])
+    tabs.addTab(quizzer_typer, "Typer")
+    quizzer_typer.setCurrentIndex(Settings.get("which_typer"))
+    Settings.signal_for("which_typer").connect(quizzer_typer.setCurrentIndex)
 
-    tm = TextManager()
-    quiz.wantText.connect(tm.nextText)
-    tm.setText.connect(quiz.setText)
-    tm.gotoText.connect(lambda: tabs.setCurrentIndex(0))
-    tabs.addTab(tm, "Sources")
+    text_mgr = TextManager()
+    quizzer.wantText.connect(text_mgr.nextText)
+    text_mgr.setText.connect(quizzer.setText)
+    text_mgr.gotoText.connect(lambda: tabs.setCurrentIndex(0))
+    tabs.addTab(text_mgr, "Sources")
 
-    ph = PerformanceHistory()
-    tm.refreshSources.connect(ph.refreshSources)
-    quiz.statsChanged.connect(ph.updateData)
-    ph.setText.connect(quiz.setText)
-    ph.gotoText.connect(lambda: tabs.setCurrentIndex(0))
-    tabs.addTab(ph, "Performance")
+    perf_hist = PerformanceHistory()
+    text_mgr.refreshSources.connect(perf_hist.refreshSources)
+    quizzer.statsChanged.connect(perf_hist.updateData)
+    perf_hist.setText.connect(quizzer.setText)
+    perf_hist.gotoText.connect(lambda: tabs.setCurrentIndex(0))
+    tabs.addTab(perf_hist, "Performance")
 
-    st = StringStats()
-    st.lessonStrings.connect(lambda x: tabs.setCurrentIndex(4))
-    tabs.addTab(st, "Analysis")
+    string_stat = StringStats()
+    string_stat.lessonStrings.connect(lambda x: tabs.setCurrentIndex(4))
+    tabs.addTab(string_stat, "Analysis")
 
-    lg = LessonGenerator()
-    st.lessonStrings.connect(lg.addStrings)
-    lg.newLessons.connect(lambda: tabs.setCurrentIndex(1))
-    lg.newLessons.connect(tm.addTexts)
-    quiz.wantReview.connect(lg.wantReview)
-    lg.newReview.connect(tm.newReview)
-    tabs.addTab(lg, "Lesson Generator")
+    lesson_gen = LessonGenerator()
+    string_stat.lessonStrings.connect(lesson_gen.addStrings)
+    lesson_gen.newLessons.connect(lambda: tabs.setCurrentIndex(1))
+    lesson_gen.newLessons.connect(text_mgr.addTexts)
+    quizzer.wantReview.connect(lesson_gen.wantReview)
+    lesson_gen.newReview.connect(text_mgr.newReview)
+    tabs.addTab(lesson_gen, "Lesson Generator")
 
     # advanced_lesson_generator = AdvancedLessonGenerator()
     # tabs.addTab(advanced_lesson_generator, "Advanced Lesson Generator")
 
-    ph.setText.connect(tm.emit_text)
-    tm.setText.connect(tw.setText)
-    tw.wantText.connect(tm.nextText)
-    tw.wantReview.connect(lg.wantReview)
-    tw.statsChanged.connect(ph.updateData)
+    perf_hist.setText.connect(text_mgr.emit_text)
+    text_mgr.setText.connect(typer.setText)
+    typer.wantText.connect(text_mgr.nextText)
+    typer.wantReview.connect(lesson_gen.wantReview)
+    typer.statsChanged.connect(perf_hist.updateData)
 
-    dw = DatabaseWidget()
-    tabs.addTab(dw, "Database")
+    db_widget = DatabaseWidget()
+    tabs.addTab(db_widget, "Database")
 
     pw = QTabWidget()
     pw.addTab(GeneralOptions(), "General Options")
     pw.addTab(TyperOptions(), "Typer 2 Options (BETA)")
     tabs.addTab(pw, "Preferences")
 
-    ab = AboutWidget()
-    tabs.addTab(ab, "About/Help")
+    about_widget = AboutWidget()
+    tabs.addTab(about_widget, "About/Help")
 
     self.setCentralWidget(tabs)
 
-    tm.nextText()
+    text_mgr.nextText()
 
   def sizeHint(self):
     return QSize(650, 400)
