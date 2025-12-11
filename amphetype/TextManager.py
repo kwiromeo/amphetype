@@ -315,7 +315,7 @@ class TextManager(QWidget):
         v = v[0]  # random, just pick the first
     else:
       # Fetch in order
-      lastid = (0,)
+      last_id = (0,)
       g = DB.fetchone(
         """select r.text_id
         from result as r left join source as s on (r.source = s.rowid)
@@ -323,11 +323,11 @@ class TextManager(QWidget):
         None,
       )
       if g is not None:
-        lastid = DB.fetchone("select rowid from text where id = ?", lastid, g)
+        last_id = DB.fetchone("select rowid from text where id = ?", last_id, g)
       v = DB.fetchone(
         "select id,source,text from text where rowid > ? and disabled is null order by rowid asc limit 1",
         None,
-        lastid,
+        last_id,
       )
 
     if v is None:
@@ -406,8 +406,8 @@ class TextManager(QWidget):
   def emit_text(self, v):
     log.info("setting new text id=%s length=%d source=%s", v[0], len(v[2]), v[1])
     if Settings.get("text_force_ascii"):
-      tid, tsrc, ttxt = v
-      v = (tid, tsrc, force_ascii(ttxt))
+      text_id, text_src, found_txt = v
+      v = (text_id, text_src, force_ascii(found_txt))
     self.setText.emit(v)
 
 
