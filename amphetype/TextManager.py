@@ -120,11 +120,12 @@ class TextManager(QWidget):
               self.progress,
               [
                 AmphButton("Import Texts", self.addFiles),
+                AmphButton("Import code file", self.addCodeFile),
                 None,
                 AmphButton("Enable All", self.enableAll),
                 AmphButton("Delete Disabled", self.removeDisabled),
                 None,
-                AmphButton("Update List", self.update),
+                AmphButton("Update List", self.update_text_list),
               ],
               [  # AmphButton("Remove", self.removeSelected), "or",
                 AmphButton("Toggle disabled", self.disableSelected),
@@ -216,6 +217,14 @@ class TextManager(QWidget):
     self.diff_eval = _func
     self.nextText()
 
+  def addCodeFile(self) -> None:
+    message_box = QMessageBox()
+    message_box.setText("Import Code button has been pressed")
+    message_box.setWindowTitle("Import Code Message Box")
+    message_box.setIcon(QMessageBox.Information)
+    message_box.setStandardButtons(QMessageBox.Ok)
+    message_box.exec_()
+
   def addFiles(self):
     qf = QFileDialog(self, "Import Text From File(s)", directory=str(Settings.DATA_DIR / "texts"))
     qf.setNameFilters(["UTF-8 text files (*.txt)", "All files (*)"])
@@ -261,7 +270,7 @@ class TextManager(QWidget):
       except Exception:
         pass  # silently skip ...
     if update:
-      self.update()
+      self.update_text_list()
     if lesson:
       DB.commit()
     return r
@@ -274,7 +283,7 @@ class TextManager(QWidget):
     else:
       self.nextText()
 
-  def update(self):
+  def update_text_list(self):
     self.refreshSources.emit()
     self.model.reset()
 
@@ -339,12 +348,12 @@ class TextManager(QWidget):
   def removeDisabled(self):
     DB.execute("delete from text where disabled is not null")
     self.removeUnused()
-    self.update()
+    self.update_text_list()
     DB.commit()
 
   def enableAll(self):
     DB.execute("update text set disabled = null where disabled is not null")
-    self.update()
+    self.update_text_list()
 
   def disableSelected(self):
     cats, texts = self.getSelected()
@@ -359,7 +368,7 @@ class TextManager(QWidget):
         where source = ? and regex_match(text) = 1""",
       [(x,) for x in cats],
     )
-    self.update()
+    self.update_text_list()
 
   def getSelected(self):
     texts = []
