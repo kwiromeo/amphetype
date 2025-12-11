@@ -120,7 +120,7 @@ class TextManager(QWidget):
               self.progress,
               [
                 AmphButton("Import Texts", self.addFiles),
-                AmphButton("Import code file", self.addCodeFile),
+                AmphButton("Import code file", self._select_code_files),
                 None,
                 AmphButton("Enable All", self.enableAll),
                 AmphButton("Delete Disabled", self.removeDisabled),
@@ -217,13 +217,22 @@ class TextManager(QWidget):
     self.diff_eval = _func
     self.nextText()
 
-  def addCodeFile(self) -> None:
-    message_box = QMessageBox()
-    message_box.setText("Import Code button has been pressed")
-    message_box.setWindowTitle("Import Code Message Box")
-    message_box.setIcon(QMessageBox.Information)
-    message_box.setStandardButtons(QMessageBox.Ok)
-    message_box.exec_()
+  def _select_code_files(self) -> None:
+    user_home_dir = path.expanduser("~")
+    found_dir = user_home_dir if str(user_home_dir) else (Settings.DATA_DIR / "texts")
+
+    file_dialog = QFileDialog(self, "Import Text From Source Code", directory=str(found_dir))
+    file_dialog.setNameFilters(["UTF-8 source code (*.py)", "All files (*)"])
+    file_dialog.setFileMode(QFileDialog.ExistingFiles)
+    file_dialog.setAcceptMode(QFileDialog.AcceptOpen)
+
+    file_dialog.filesSelected["QStringList"].connect(self._extract_lessons_from_code)
+
+    file_dialog.show()
+
+  def _extract_lessons_from_code(self, files):
+    for file in files:
+      print(file)
 
   def addFiles(self):
     qf = QFileDialog(self, "Import Text From File(s)", directory=str(Settings.DATA_DIR / "texts"))
