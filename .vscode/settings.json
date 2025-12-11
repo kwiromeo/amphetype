@@ -3,7 +3,9 @@
     "cSpell.allowCompoundWords": true,
     "cSpell.words": [
         "Amph",
-        "amphetype"
+        "amphetype",
+        "Neue",
+        "Segoe"
     ],
     "cSpell.ignorePaths": [
         "package-lock.json",
