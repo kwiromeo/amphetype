@@ -19,5 +19,7 @@
     ],
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 500,
-    "editor.rulers": [100],
+    "editor.rulers": [
+        100
+    ],
 }
