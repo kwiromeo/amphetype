@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QLabel, QTextEdit, QVBoxLayout, QWidget
 from amphetype import timer
 from amphetype.Config import Settings
 from amphetype.Data import DB, Statistic
-from amphetype.QtUtil import WWLabel
+from amphetype.QtUtil import WordWrapLabel
 
 
 class Typer(QTextEdit):
@@ -152,7 +152,7 @@ class Quizzer(QWidget):
 
     self.result = QLabel()
     self.typer = Typer()
-    self.label = WWLabel()
+    self.label = WordWrapLabel()
     self.result.setVisible(Settings.get("show_last"))
     # self.label.setFrameStyle(QFrame.Raised | QFrame.StyledPanel)
     # self.typer.setBuddy(self.label)

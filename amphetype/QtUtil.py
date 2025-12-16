@@ -29,7 +29,7 @@ def maybe_cmp_func(f):
   return _maybe_cmp_func
 
 
-class WWLabel(QLabel):
+class WordWrapLabel(QLabel):
   def __init__(self, *args):
     super(QLabel, self).__init__(*args)
     self.setWordWrap(True)
@@ -175,7 +175,7 @@ class AmphBoxLayout(QBoxLayout):
   def addStuff(self, x, stretch=0):
     if isinstance(x, str):
       if x[-1] == "\n":
-        self.addWidget(WWLabel(x[:-1]), stretch)
+        self.addWidget(WordWrapLabel(x[:-1]), stretch)
       else:
         self.addWidget(QLabel(x), stretch)
     elif isinstance(x, list):
@@ -216,7 +216,7 @@ class AmphGridLayout(QGridLayout):
       args = pos + span + (align,)
     if isinstance(x, str):
       if x[-1] == "\n":
-        self.addWidget(WWLabel(x[:-1]), *args)
+        self.addWidget(WordWrapLabel(x[:-1]), *args)
       else:
         self.addWidget(QLabel(x), *args)
     elif isinstance(x, list):
