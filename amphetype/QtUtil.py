@@ -158,36 +158,39 @@ class AmphTree(QTreeView):
     self.setWordWrap(True)
     self.setSelectionMode(QAbstractItemView.ExtendedSelection)
     # self.setExpandsOnDoubleClick(False)
-    self.header().setSectionsClickable(True)
-    self.header().sectionClicked[int].connect(self.sortByColumn)
+
+    table_header = self.header()
+    assert table_header is not None, "table header should not be none"
+    table_header.setSectionsClickable(True)
+    table_header.sectionClicked[int].connect(self.sortByColumn)
 
 
 class AmphBoxLayout(QBoxLayout):
   def __init__(self, tree, dir: QBoxLayout.Direction = QBoxLayout.Direction.TopToBottom):
     QBoxLayout.__init__(self, dir)
 
-    for x in tree:
-      if isinstance(x, tuple):
-        self.addItemToBoxLayout(*x)
+    for item in tree:
+      if isinstance(item, tuple):
+        self.addItemToBoxLayout(*item)
       else:
-        self.addItemToBoxLayout(x)
+        self.addItemToBoxLayout(item)
 
-  def addItemToBoxLayout(self, x, stretch=0):
-    if isinstance(x, str):
-      if x[-1] == "\n":
-        self.addWidget(WordWrapLabel(x[:-1]), stretch)
+  def addItemToBoxLayout(self, layoutItem, stretch=0):
+    if isinstance(layoutItem, str):
+      if layoutItem[-1] == "\n":
+        self.addWidget(WordWrapLabel(layoutItem[:-1]), stretch)
       else:
-        self.addWidget(QLabel(x), stretch)
-    elif isinstance(x, list):
-      self.addLayout(self.getInstance(x), stretch)
-    elif isinstance(x, int):
-      self.addSpacing(x)
-    elif x is None:
+        self.addWidget(QLabel(layoutItem), stretch)
+    elif isinstance(layoutItem, list):
+      self.addLayout(self.getInstance(layoutItem), stretch)
+    elif isinstance(layoutItem, int):
+      self.addSpacing(layoutItem)
+    elif layoutItem is None:
       self.addStretch(1 if stretch == 0 else stretch)
-    elif isinstance(x, QLayout):
-      self.addLayout(x, stretch)
+    elif isinstance(layoutItem, QLayout):
+      self.addLayout(layoutItem, stretch)
     else:
-      self.addWidget(x, stretch)
+      self.addWidget(layoutItem, stretch)
 
   def getInstance(self, x):
     if self.direction() == QBoxLayout.Direction.TopToBottom:

@@ -110,13 +110,29 @@ class TextManager(QWidget):
     self.progress.setRange(0, 100)
     self.progress.hide()
 
+    source_list_msg = (
+      "Below you will see the different text sources used. Disabling texts or sources deactivates "
+      "them so they won't be selected for typing. You can double click a text to do that "
+      "particular text.\n",
+    )
+
+    regex_usage_msg = (
+      "on all selected texts that match "
+      '<a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>'
+    )
+
+    lesson_order_msg = (
+      "(in order works by selecting the next text after the one you completed last, in the order "
+      "they were added to the database, easy/difficult works by estimating your WPM for several "
+      "random texts and choosing the fastest/slowest)\n"
+    )
+
     self.setLayout(
       AmphBoxLayout(
         [
           (
             [
-              "Below you will see the different text sources used. Disabling texts or sources deactivates them so they won't be selected for typing. You can double click a text to do that particular text.\n",
-
+              source_list_msg,
               (self.tree, 1),
               self.progress,
               [
@@ -128,9 +144,9 @@ class TextManager(QWidget):
                 None,
                 AmphButton("Update List", self.update_text_list),
               ],
-              [  # AmphButton("Remove", self.removeSelected), "or",
+              [
                 AmphButton("Toggle disabled", self.disableSelected),
-                'on all selected texts that match <a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>',
+                regex_usage_msg,
                 SettingsEdit("text_regex"),
               ],
             ],
@@ -145,7 +161,7 @@ class TextManager(QWidget):
               ),
               None,
             ],
-            "(in order works by selecting the next text after the one you completed last, in the order they were added to the database, easy/difficult works by estimating your WPM for several random texts and choosing the fastest/slowest)\n",
+            lesson_order_msg,
             20,
             AmphGridLayout(
               [
