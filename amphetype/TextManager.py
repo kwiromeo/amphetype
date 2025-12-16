@@ -116,6 +116,7 @@ class TextManager(QWidget):
           (
             [
               "Below you will see the different text sources used. Disabling texts or sources deactivates them so they won't be selected for typing. You can double click a text to do that particular text.\n",
+
               (self.tree, 1),
               self.progress,
               [
@@ -127,7 +128,7 @@ class TextManager(QWidget):
                 None,
                 AmphButton("Update List", self.update_text_list),
               ],
-              [
+              [  # AmphButton("Remove", self.removeSelected), "or",
                 AmphButton("Toggle disabled", self.disableSelected),
                 'on all selected texts that match <a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>',
                 SettingsEdit("text_regex"),
@@ -169,7 +170,7 @@ class TextManager(QWidget):
             None,
           ],
         ],
-        QBoxLayout.LeftToRight,
+        QBoxLayout.Direction.LeftToRight,
       )
     )
 

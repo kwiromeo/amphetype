@@ -163,16 +163,16 @@ class AmphTree(QTreeView):
 
 
 class AmphBoxLayout(QBoxLayout):
-  def __init__(self, tree, dir=QBoxLayout.TopToBottom):
+  def __init__(self, tree, dir: QBoxLayout.Direction = QBoxLayout.Direction.TopToBottom):
     QBoxLayout.__init__(self, dir)
 
     for x in tree:
       if isinstance(x, tuple):
-        self.addStuff(*x)
+        self.addItemToBoxLayout(*x)
       else:
-        self.addStuff(x)
+        self.addItemToBoxLayout(x)
 
-  def addStuff(self, x, stretch=0):
+  def addItemToBoxLayout(self, x, stretch=0):
     if isinstance(x, str):
       if x[-1] == "\n":
         self.addWidget(WordWrapLabel(x[:-1]), stretch)
@@ -190,10 +190,10 @@ class AmphBoxLayout(QBoxLayout):
       self.addWidget(x, stretch)
 
   def getInstance(self, x):
-    if self.direction() == QBoxLayout.TopToBottom:
-      next = QBoxLayout.LeftToRight
+    if self.direction() == QBoxLayout.Direction.TopToBottom:
+      next = QBoxLayout.Direction.LeftToRight
     else:
-      next = QBoxLayout.TopToBottom
+      next = QBoxLayout.Direction.TopToBottom
     return AmphBoxLayout(x, next)
 
 
@@ -205,11 +205,11 @@ class AmphGridLayout(QGridLayout):
       for col in range(len(grid[row])):
         x = grid[row][col]
         if isinstance(x, tuple):
-          self.addStuff(x[0], (row, col), *x[1:])
+          self.addItemToGridLayout(x[0], (row, col), *x[1:])
         else:
-          self.addStuff(x, (row, col))
+          self.addItemToGridLayout(x, (row, col))
 
-  def addStuff(self, x, pos, span=(1, 1), align=0):
+  def addItemToGridLayout(self, x, pos, span=(1, 1), align=0):
     if align == 0:
       args = pos + span
     else:
