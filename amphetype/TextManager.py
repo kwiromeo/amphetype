@@ -127,7 +127,7 @@ class TextManager(QWidget):
                 None,
                 AmphButton("Update List", self.update_text_list),
               ],
-              [  # AmphButton("Remove", self.removeSelected), "or",
+              [
                 AmphButton("Toggle disabled", self.disableSelected),
                 'on all selected texts that match <a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>',
                 SettingsEdit("text_regex"),
