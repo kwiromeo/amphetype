@@ -5,7 +5,17 @@ import time
 import typing
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QBoxLayout, QFileDialog, QMessageBox, QProgressBar, QWidget
+from PyQt5.QtWidgets import (
+  QLayout,
+  QBoxLayout,
+  QHBoxLayout,
+  QVBoxLayout,
+  QFileDialog,
+  QMessageBox,
+  QProgressBar,
+  QWidget,
+  QFrame,
+)
 
 from amphetype.Config import Settings, SettingsCombo, SettingsEdit
 from amphetype.Data import DB
@@ -15,6 +25,7 @@ from amphetype.QtUtil import (
   AmphGridLayout,
   AmphModel,
   AmphTree,
+  WordWrapLabel,
 )
 from amphetype.Text import LessonMiner
 
@@ -110,91 +121,182 @@ class TextManager(QWidget):
     self.progress.setRange(0, 100)
     self.progress.hide()
 
-    source_list_msg = (
-      "Below you will see the different text sources used. Disabling texts or sources deactivates "
-      "them so they won't be selected for typing. You can double click a text to do that "
-      "particular text.\n",
-    )
-
-    regex_usage_msg = (
+    regex_usage_msg = str(
       "on all selected texts that match "
       '<a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>'
     )
 
-    lesson_order_msg = (
-      "(in order works by selecting the next text after the one you completed last, in the order "
-      "they were added to the database, easy/difficult works by estimating your WPM for several "
-      "random texts and choosing the fastest/slowest)\n"
-    )
+    main_panel = self._create_layout()
+    self.setLayout(main_panel)
 
-    self.setLayout(
-      AmphBoxLayout(
-        [
-          (
-            [
-              source_list_msg,
-              (self.tree, 1),
-              self.progress,
-              [
-                AmphButton("Import Texts", self.addFiles),
-                AmphButton("Import code file", self._select_code_files),
-                None,
-                AmphButton("Enable All", self.enableAll),
-                AmphButton("Delete Disabled", self.removeDisabled),
-                None,
-                AmphButton("Update List", self.update_text_list),
-              ],
-              [
-                AmphButton("Toggle disabled", self.disableSelected),
-                regex_usage_msg,
-                SettingsEdit("text_regex"),
-              ],
-            ],
-            1,
-          ),
-          [
-            [
-              "Selection method for new lessons:",
-              SettingsCombo(
-                "select_method",
-                ["Random", "In Order", "Difficult", "Easy"],
-              ),
-              None,
-            ],
-            lesson_order_msg,
-            20,
-            AmphGridLayout(
-              [
-                [
-                  (
-                    "Repeat <i>texts</i> that don't meet the following requirements:\n",
-                    (1, 3),
-                  )
-                ],
-                ["WPM:", SettingsEdit("min_wpm")],
-                ["Accuracy:", SettingsEdit("min_acc"), (None, (0, 1))],
-                [
-                  (
-                    "Repeat <i>lessons</i> that don't meet the following requirements:\n",
-                    (1, 3),
-                  )
-                ],
-                ["WPM:", SettingsEdit("min_lesson_wpm")],
-                ["Accuracy:", SettingsEdit("min_lesson_acc")],
-              ]
-            ),
-            None,
-          ],
-        ],
-        QBoxLayout.Direction.LeftToRight,
-      )
-    )
+    # self.setLayout(
+    #   AmphBoxLayout(
+    #     [
+    #       (
+    #         [
+    #           source_list_msg,
+    #           (self.tree, 1),
+    #           self.progress,
+    #           [
+    #             AmphButton("Import Texts", self.addFiles),
+    #             AmphButton("Import code file", self._select_code_files),
+    #             None,
+    #             AmphButton("Enable All", self.enableAll),
+    #             AmphButton("Delete Disabled", self.removeDisabled),
+    #             None,
+    #             AmphButton("Update List", self.update_text_list),
+    #           ],
+    #           [
+    #             AmphButton("Toggle disabled", self.disableSelected),
+    #             regex_usage_msg,
+    #             SettingsEdit("text_regex"),
+    #           ],
+    #         ],
+    #         1,
+    #       ),
+    #       [
+    #         [
+    #           "Selection method for new lessons:",
+    #           SettingsCombo(
+    #             "select_method",
+    #             ["Random", "In Order", "Difficult", "Easy"],
+    #           ),
+    #           None,
+    #         ],
+    #         lesson_order_msg,
+    #         20,
+    #         AmphGridLayout(
+    #           [
+    #             [
+    #               (
+    #                 "Repeat <i>texts</i> that don't meet the following requirements:\n",
+    #                 (1, 3),
+    #               )
+    #             ],
+    #             ["WPM:", SettingsEdit("min_wpm")],
+    #             ["Accuracy:", SettingsEdit("min_acc"), (None, (0, 1))],
+    #             [
+    #               (
+    #                 "Repeat <i>lessons</i> that don't meet the following requirements:\n",
+    #                 (1, 3),
+    #               )
+    #             ],
+    #             ["WPM:", SettingsEdit("min_lesson_wpm")],
+    #             ["Accuracy:", SettingsEdit("min_lesson_acc")],
+    #           ]
+    #         ),
+    #         None,
+    #       ],
+    #     ],
+    #     QBoxLayout.Direction.LeftToRight,
+    #   )
+    # )
 
-    Settings.signal_for("select_method").connect(self.setSelect)
+    # self._set_layout()
+    Settings.signal_for("select_method").connect(self._set_select)
     Settings.signal_for("text_force_ascii").connect(self.nextText)
-    self.setSelect(Settings.get("select_method"))
+    self._set_select(Settings.get("select_method"))
 
-  def setSelect(self, v):
+  def _create_layout(self) -> QLayout:
+    # Add Message at the top of the stack panel
+    source_list_msg = str(
+      "Below you will see the different text sources used. Disabling texts or sources deactivates "
+      "them so they won't be selected for typing. You can double click a text to do that "
+      "particular text.",
+    )
+
+    main_stack_panel = QVBoxLayout()
+    main_stack_panel.addWidget(WordWrapLabel(source_list_msg))
+
+    # Add a line before the side by side panel
+    source_label_divider = QFrame()
+    source_label_divider.setFrameShape(QFrame.HLine)
+    source_label_divider.setFrameShadow(QFrame.Sunken)
+
+    ## TODO: How does self.progress work? if it works, add it to the vertical stack layout
+
+    main_stack_panel.addWidget(source_label_divider)
+
+    # Add tree and other side by side
+    side_by_side = QHBoxLayout()
+
+    side_by_side.addWidget(self.tree, 5)
+
+    # Settings Panel
+    settings_panel = QVBoxLayout()
+
+    # Lesson Order Selector
+    settings_panel.addWidget(WordWrapLabel("<b>Set method for picking next lessons:</b>"))
+
+    settings_panel.addWidget(
+      SettingsCombo(
+        "select_method",
+        ["Random", "In Order", "Difficult", "Easy"],
+      ),
+    )
+    lesson_order_msg = str(
+      "<b>Random</b> selects a random text from the lesson listed in the sources."
+      "<br />"
+      "<b>In Order</b> works by selecting the next text after the one you completed last, in "
+      "the order they were added to the database"
+      "<br/>"
+      "<b>Easy/Difficult</b> works by estimating your WPM for several random texts and choosing"
+      " the fastest/slowest)"
+    )
+    settings_panel.addWidget(WordWrapLabel(lesson_order_msg))
+
+    lesson_order_divider = QFrame()
+    lesson_order_divider.setFrameShape(QFrame.HLine)
+    lesson_order_divider.setFrameShadow(QFrame.Sunken)
+    settings_panel.addWidget(lesson_order_divider)
+
+    set_text_wpm_layout = QHBoxLayout()
+    set_text_wpm_layout.addWidget(WordWrapLabel("WPM (text): "), 2)
+    set_text_wpm_layout.addWidget(SettingsEdit("min_wpm"), 1)
+
+    set_text_accuracy_layout = QHBoxLayout()
+    set_text_accuracy_layout.addWidget(WordWrapLabel("Accuracy (text): "), 2)
+    set_text_accuracy_layout.addWidget(SettingsEdit("min_acc"), 1)
+
+    set_lesson_wpm_layout = QHBoxLayout()
+    set_lesson_wpm_layout.addWidget(WordWrapLabel("WPM (lesson): "), 2)
+    set_lesson_wpm_layout.addWidget(SettingsEdit("min_lesson_wpm"), 1)
+
+    set_lesson_accuracy_layout = QHBoxLayout()
+    set_lesson_accuracy_layout.addWidget(WordWrapLabel("Accuracy (lesson): "), 2)
+    set_lesson_accuracy_layout.addWidget(SettingsEdit("min_lesson_acc"), 1)
+
+    settings_panel.addWidget(
+      WordWrapLabel("Repeat <i>texts</i> that don't meet the following requirements:\n")
+    )
+    settings_panel.addLayout(set_text_wpm_layout)
+    settings_panel.addLayout(set_text_accuracy_layout)
+
+    repeat_settings_divider = QFrame()
+    repeat_settings_divider.setFrameShape(QFrame.HLine)
+    repeat_settings_divider.setFrameShadow(QFrame.Sunken)
+    settings_panel.addWidget(repeat_settings_divider)
+
+    settings_panel.addWidget(
+      WordWrapLabel("Repeat <i>lessons</i> that don't meet the following requirements:\n")
+    )
+
+    settings_panel.addLayout(set_lesson_wpm_layout)
+    settings_panel.addLayout(set_lesson_accuracy_layout)
+
+    settings_panel.addStretch()
+
+    side_by_side.addLayout(settings_panel, 2)
+    main_stack_panel.addLayout(side_by_side)
+
+    split_panel_divider = QFrame()
+    split_panel_divider.setFrameShape(QFrame.HLine)
+    split_panel_divider.setFrameShadow(QFrame.Sunken)
+    main_stack_panel.addWidget(split_panel_divider)
+
+    return main_stack_panel
+
+  def _set_select(self, v):
     if v == 0 or v == 1:
       self.diff_eval = lambda x: 1
       self.nextText()
@@ -229,7 +331,10 @@ class TextManager(QWidget):
           s += expect
           v += 1
       avg = s / (len(text) - 2)
-      return 12.0 / avg
+
+      divider = 1 if avg < 1 else avg
+
+      return 12.0 / divider
 
     self.diff_eval = _func
     self.nextText()
