@@ -6,6 +6,7 @@ import typing
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
+  QLabel,
   QLayout,
   QBoxLayout,
   QHBoxLayout,
@@ -293,6 +294,32 @@ class TextManager(QWidget):
     split_panel_divider.setFrameShape(QFrame.HLine)
     split_panel_divider.setFrameShadow(QFrame.Sunken)
     main_stack_panel.addWidget(split_panel_divider)
+
+    manage_sources_row = QHBoxLayout()
+    manage_sources_row.addWidget(QLabel("<b>Add Items to Sources: </b>"))
+    manage_sources_row.addWidget(AmphButton("Import Texts", self.addFiles))
+    manage_sources_row.addWidget(AmphButton("Import Code", self._select_code_files))
+
+    manage_source_divider = QFrame()
+    manage_source_divider.setFrameShape(QFrame.VLine)
+    manage_source_divider.setFrameShadow(QFrame.Sunken)
+    manage_sources_row.addWidget(manage_source_divider)
+
+    manage_sources_row.addWidget(QLabel("<b>Manage Sources: </b>"))
+    manage_sources_row.addWidget(AmphButton("Enable All Text", self.enableAll))
+    manage_sources_row.addWidget(AmphButton("Remove Disabled", self.removeDisabled))
+
+    additional_source_divider = QFrame()
+    additional_source_divider.setFrameShape(QFrame.VLine)
+    additional_source_divider.setFrameShadow(QFrame.Sunken)
+    manage_sources_row.addWidget(additional_source_divider)
+
+    manage_sources_row.addWidget(WordWrapLabel("<b>Update Sources: </b>"))
+    manage_sources_row.addWidget(AmphButton("Update List", self.update_text_list))
+
+    manage_sources_row.addStretch()
+
+    main_stack_panel.addLayout(manage_sources_row)
 
     return main_stack_panel
 
