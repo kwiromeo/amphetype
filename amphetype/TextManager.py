@@ -6,24 +6,21 @@ import typing
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
+  QFileDialog,
+  QFrame,
+  QHBoxLayout,
   QLabel,
   QLayout,
-  QBoxLayout,
-  QHBoxLayout,
-  QVBoxLayout,
-  QFileDialog,
   QMessageBox,
   QProgressBar,
+  QVBoxLayout,
   QWidget,
-  QFrame,
 )
 
 from amphetype.Config import Settings, SettingsCombo, SettingsEdit
 from amphetype.Data import DB
 from amphetype.QtUtil import (
-  AmphBoxLayout,
   AmphButton,
-  AmphGridLayout,
   AmphModel,
   AmphTree,
   WordWrapLabel,
@@ -122,76 +119,8 @@ class TextManager(QWidget):
     self.progress.setRange(0, 100)
     self.progress.hide()
 
-    regex_usage_msg = str(
-      "on all selected texts that match "
-      '<a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>'
-    )
-
-    main_panel = self._create_layout()
-    self.setLayout(main_panel)
-
-    # self.setLayout(
-    #   AmphBoxLayout(
-    #     [
-    #       (
-    #         [
-    #           source_list_msg,
-    #           (self.tree, 1),
-    #           self.progress,
-    #           [
-    #             AmphButton("Import Texts", self.addFiles),
-    #             AmphButton("Import code file", self._select_code_files),
-    #             None,
-    #             AmphButton("Enable All", self.enableAll),
-    #             AmphButton("Delete Disabled", self.removeDisabled),
-    #             None,
-    #             AmphButton("Update List", self.update_text_list),
-    #           ],
-    #           [
-    #             AmphButton("Toggle disabled", self.disableSelected),
-    #             regex_usage_msg,
-    #             SettingsEdit("text_regex"),
-    #           ],
-    #         ],
-    #         1,
-    #       ),
-    #       [
-    #         [
-    #           "Selection method for new lessons:",
-    #           SettingsCombo(
-    #             "select_method",
-    #             ["Random", "In Order", "Difficult", "Easy"],
-    #           ),
-    #           None,
-    #         ],
-    #         lesson_order_msg,
-    #         20,
-    #         AmphGridLayout(
-    #           [
-    #             [
-    #               (
-    #                 "Repeat <i>texts</i> that don't meet the following requirements:\n",
-    #                 (1, 3),
-    #               )
-    #             ],
-    #             ["WPM:", SettingsEdit("min_wpm")],
-    #             ["Accuracy:", SettingsEdit("min_acc"), (None, (0, 1))],
-    #             [
-    #               (
-    #                 "Repeat <i>lessons</i> that don't meet the following requirements:\n",
-    #                 (1, 3),
-    #               )
-    #             ],
-    #             ["WPM:", SettingsEdit("min_lesson_wpm")],
-    #             ["Accuracy:", SettingsEdit("min_lesson_acc")],
-    #           ]
-    #         ),
-    #         None,
-    #       ],
-    #     ],
-    #     QBoxLayout.Direction.LeftToRight,
-    #   )
-    # )
+    ui_panel = self._create_layout()
+    self.setLayout(ui_panel)
 
     # self._set_layout()
     Settings.signal_for("select_method").connect(self._set_select)
@@ -236,12 +165,12 @@ class TextManager(QWidget):
       ),
     )
     lesson_order_msg = str(
-      "<b>Random</b> selects a random text from the lesson listed in the sources."
+      "<b>Random</b> selects a random text from the lessons listed in the sources."
       "<br />"
-      "<b>In Order</b> works by selecting the next text after the one you completed last, in "
-      "the order they were added to the database"
+      "<b>In Order</b> selects the next text after the one you completed last, in "
+      "the order they were added to the database."
       "<br/>"
-      "<b>Easy/Difficult</b> works by estimating your WPM for several random texts and choosing"
+      "<b>Easy/Difficult</b> estimates your WPM for several random texts and choosing"
       " the fastest/slowest)"
     )
     settings_panel.addWidget(WordWrapLabel(lesson_order_msg))
@@ -307,6 +236,7 @@ class TextManager(QWidget):
 
     manage_sources_row.addWidget(QLabel("<b>Manage Sources: </b>"))
     manage_sources_row.addWidget(AmphButton("Enable All Text", self.enableAll))
+    manage_sources_row.addWidget(AmphButton("Toggle Selected", self.disableSelected))
     manage_sources_row.addWidget(AmphButton("Remove Disabled", self.removeDisabled))
 
     additional_source_divider = QFrame()
@@ -314,12 +244,26 @@ class TextManager(QWidget):
     additional_source_divider.setFrameShadow(QFrame.Sunken)
     manage_sources_row.addWidget(additional_source_divider)
 
-    manage_sources_row.addWidget(WordWrapLabel("<b>Update Sources: </b>"))
-    manage_sources_row.addWidget(AmphButton("Update List", self.update_text_list))
-
+    # Add update source list button
+    manage_sources_row.addStretch()
+    manage_sources_row.addWidget(AmphButton("Update Source List", self.update_text_list))
     manage_sources_row.addStretch()
 
     main_stack_panel.addLayout(manage_sources_row)
+
+    # TODO (Romeo K. 12/17/2025): add bulk regex enable/disable back into UI.
+    # Previous implementation:
+    # [
+    #   AmphButton("Toggle disabled", self.disableSelected),
+    #   regex_usage_msg,
+    #   SettingsEdit("text_regex"),
+    # ],
+    #
+    # UI help message
+    # regex_usage_msg = str(
+    #   "on all selected texts that match "
+    #   '<a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>'
+    # )
 
     return main_stack_panel
 
@@ -400,18 +344,18 @@ class TextManager(QWidget):
       self.progress.setValue(0)
       fname = path.basename(x)
       try:
-        lm = LessonMiner(x)
+        lesson_miner = LessonMiner(x)
       except Exception:
         log.error(f"failed to process file {fname}!")
         continue
-      lm.progress[int].emit(self.progress.setValue)
-      self.addTexts(fname, lm, update=False)
+      lesson_miner.progress[int].emit(self.progress.setValue)
+      self.addTexts(fname, lesson_miner, update=False)
 
     self.progress.hide()
     self.update()
     DB.commit()
 
-  def addTexts(self, source, texts, lesson=None, update=True):
+  def addTexts(self, source: str, texts: LessonMiner, lesson=None, update=True):
     id = DB.getSource(source, lesson)
     r: typing.List[str] = []
     for x in texts:
