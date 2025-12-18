@@ -319,11 +319,11 @@ class TextManager(QWidget):
     file_dialog.setFileMode(QFileDialog.ExistingFiles)
     file_dialog.setAcceptMode(QFileDialog.AcceptOpen)
 
-    file_dialog.filesSelected["QStringList"].connect(self._extract_lessons_from_code)
+    file_dialog.filesSelected["QStringList"].connect(self._get_lessons_from_code)
 
     file_dialog.show()
 
-  def _extract_lessons_from_code(self, files):
+  def _get_lessons_from_code(self, files):
     for file in files:
       print(file)
 
@@ -333,11 +333,11 @@ class TextManager(QWidget):
     qf.setFileMode(QFileDialog.ExistingFiles)
     qf.setAcceptMode(QFileDialog.AcceptOpen)
 
-    qf.filesSelected["QStringList"].connect(self.setImpList)
+    qf.filesSelected["QStringList"].connect(self._get_lessons_from_text)
 
     qf.show()
 
-  def setImpList(self, files):
+  def _get_lessons_from_text(self, files):
     self.sender().hide()
     self.progress.show()
     for x in map(str, files):

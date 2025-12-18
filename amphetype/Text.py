@@ -4,6 +4,7 @@ if __name__ == "__main__":
 import codecs
 import random
 import re
+import typing
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -56,9 +57,9 @@ class LessonMiner(QObject):
   def __init__(self, fname):
     super(LessonMiner, self).__init__()
     # print time.clock()
-    with codecs.open(fname, "r", "utf_8_sig") as f:
-      self.paras = self.split_paragraph(f)
-    self.lessons = None
+    with codecs.open(fname, "r", "utf_8_sig") as file:
+      self.paras = self.split_paragraph(file)
+    self.lessons : typing.Optional[typing.List[str]] = None
     self.min_chars = Settings.get("min_chars")
     self._break_sentences = Settings.get("break_sentences")
 
@@ -100,13 +101,13 @@ class LessonMiner(QObject):
       self.doIt()
     return iter(self.lessons)
 
-  def split_paragraph(self, f):
+  def split_paragraph(self, file: typing.TextIO):
     p = []
     ps = []
-    for l in f:
-      l = l.strip()
-      if l != "":
-        p.append(l)
+    for line in file:
+      line = line.strip()
+      if line != "":
+        p.append(line)
       elif len(p) > 0:
         ps.append(SentenceSplitter(" ".join(p)))
         p = []
