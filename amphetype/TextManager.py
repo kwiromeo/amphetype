@@ -26,7 +26,7 @@ from amphetype.QtUtil import (
   WordWrapLabel,
 )
 from amphetype.Text import LessonMiner
-
+from amphetype.lesson_builder import code_lessons
 
 class SourceModel(AmphModel):
   def signature(self):
@@ -223,10 +223,9 @@ class TextManager(QWidget):
     split_panel_divider.setFrameShape(QFrame.HLine)
     split_panel_divider.setFrameShadow(QFrame.Sunken)
     main_stack_panel.addWidget(split_panel_divider)
-
     manage_sources_row = QHBoxLayout()
     manage_sources_row.addWidget(QLabel("<b>Add Items to Sources: </b>"))
-    manage_sources_row.addWidget(AmphButton("Import Texts", self.addFiles))
+    manage_sources_row.addWidget(AmphButton("Import Texts", self._select_text_files))
     manage_sources_row.addWidget(AmphButton("Import Code", self._select_code_files))
 
     manage_source_divider = QFrame()
@@ -246,7 +245,7 @@ class TextManager(QWidget):
 
     # Add update source list button
     manage_sources_row.addStretch()
-    manage_sources_row.addWidget(AmphButton("Update Source List", self.update_text_list))
+    manage_sources_row.addWidget(AmphButton("Update Source List", self.update_sources_list))
     manage_sources_row.addStretch()
 
     main_stack_panel.addLayout(manage_sources_row)
@@ -325,9 +324,20 @@ class TextManager(QWidget):
 
   def _get_lessons_from_code(self, files):
     for file in files:
-      print(file)
+      lesson_extractor = code_lessons.LessonExtractor(file)
+      found_lessons = lesson_extractor.get_lessons()
+      if not found_lessons:
+        continue
 
-  def addFiles(self):
+      # Add found lesson to database
+      pseudo_filename = code_lessons.create_id_from_path(file)
+      self.addTexts(pseudo_filename, found_lessons, update=False)
+
+    self.progress.hide()
+    self.update_sources_list()
+    DB.commit()
+
+  def _select_text_files(self):
     qf = QFileDialog(self, "Import Text From File(s)", directory=str(Settings.DATA_DIR / "texts"))
     qf.setNameFilters(["UTF-8 text files (*.txt)", "All files (*)"])
     qf.setFileMode(QFileDialog.ExistingFiles)
@@ -337,10 +347,10 @@ class TextManager(QWidget):
 
     qf.show()
 
-  def _get_lessons_from_text(self, files):
+  def _get_lessons_from_text(self, files: typing.List[str]):
     self.sender().hide()
     self.progress.show()
-    for x in map(str, files):
+    for x in files:
       self.progress.setValue(0)
       fname = path.basename(x)
       try:
@@ -352,10 +362,10 @@ class TextManager(QWidget):
       self.addTexts(fname, lesson_miner, update=False)
 
     self.progress.hide()
-    self.update()
+    self.update_sources_list()
     DB.commit()
 
-  def addTexts(self, source: str, texts: LessonMiner, lesson=None, update=True):
+  def addTexts(self, source: str, texts: typing.Iterable[str], lesson=None, update=True):
     id = DB.getSource(source, lesson)
     r: typing.List[str] = []
     for x in texts:
@@ -372,7 +382,7 @@ class TextManager(QWidget):
       except Exception:
         pass  # silently skip ...
     if update:
-      self.update_text_list()
+      self.update_sources_list()
     if lesson:
       DB.commit()
     return r
@@ -385,7 +395,7 @@ class TextManager(QWidget):
     else:
       self.nextText()
 
-  def update_text_list(self):
+  def update_sources_list(self):
     self.refreshSources.emit()
     self.model.reset()
 
@@ -450,12 +460,12 @@ class TextManager(QWidget):
   def removeDisabled(self):
     DB.execute("delete from text where disabled is not null")
     self.removeUnused()
-    self.update_text_list()
+    self.update_sources_list()
     DB.commit()
 
   def enableAll(self):
     DB.execute("update text set disabled = null where disabled is not null")
-    self.update_text_list()
+    self.update_sources_list()
 
   def disableSelected(self):
     cats, texts = self.getSelected()
@@ -470,7 +480,7 @@ class TextManager(QWidget):
         where source = ? and regex_match(text) = 1""",
       [(x,) for x in cats],
     )
-    self.update_text_list()
+    self.update_sources_list()
 
   def getSelected(self):
     texts = []

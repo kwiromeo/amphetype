@@ -99,6 +99,8 @@ class LessonMiner(QObject):
   def __iter__(self):
     if self.lessons is None:
       self.doIt()
+
+    assert (self.lessons is not None), "lessons should not be none"
     return iter(self.lessons)
 
   def split_paragraph(self, file: typing.TextIO):
