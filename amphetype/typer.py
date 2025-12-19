@@ -83,9 +83,13 @@ class Cursor(QTextCursor):
 
 class LessonDocument(QTextDocument):
   style_untyped = text_style(kerning=False, background=QBrush(QColor("antiquewhite")))
-  style_error = text_style(kerning=False, background=QBrush(QColor("firebrick")), color=QBrush(QColor("white")))
+  style_error = text_style(
+    kerning=False, background=QBrush(QColor("firebrick")), color=QBrush(QColor("white"))
+  )
   style_anyerror = text_style(kerning=False, background=QBrush(QColor("darksalmon")))
-  style_correct = text_style(kerning=False, color=QBrush(QColor("dimgrey")), background=QBrush(QColor("antiquewhite")))
+  style_correct = text_style(
+    kerning=False, color=QBrush(QColor("dimgrey")), background=QBrush(QColor("antiquewhite"))
+  )
   style_inactive = text_style(color=QBrush(QColor("grey")))
 
   style_block = block_style()
@@ -378,7 +382,9 @@ class TyperWidget(QTextEdit):
         self._lesson.start()
       return
 
-    self._lesson.insert(char, overwrite=self.overwriteMode(), lenient=self._settings["lenient_mode"])
+    self._lesson.insert(
+      char, overwrite=self.overwriteMode(), lenient=self._settings["lenient_mode"]
+    )
 
   def backspace(self, word=False):
     if self._lesson is None or not self._lesson.is_running():
@@ -410,11 +416,11 @@ class TyperWindow(QWidget):
     self._label.setStyleSheet(label_stylesheet)
     self._viscosity_warning_shown = False
 
-    self._prog = QProgressBar()
-    self._progw = FStackedWidget([QLabel("Type like the wind!"), self._prog])
-    self._prog_layout = FStackedWidget([self._label, self._progw])
+    self._progress_bar = QProgressBar()
+    self._progress_widget = FStackedWidget([QLabel("Type like the wind!"), self._progress_bar])
+    self._progress_layout = FStackedWidget([self._label, self._progress_widget])
 
-    self.S("show_progress").bind_value(self._progw.setCurrentIndex)
+    self.S("show_progress").bind_value(self._progress_widget.setCurrentIndex)
     self.S("require_space").bind_change(lambda: self.updateLabel())
 
     # I am so confused. Settings system must have gone through 3 totally different paradigms.
@@ -430,8 +436,8 @@ class TyperWindow(QWidget):
       var.onChange.connect(doc.onColor)
       doc.onColor(var)
 
-    doc.started.connect(self._prog_layout.cycle)
-    doc.progress.connect(self._prog.setValue)
+    doc.started.connect(self._progress_layout.cycle)
+    doc.progress.connect(self._progress_bar.setValue)
     doc.ready.connect(self.typingReady)
     doc.completed.connect(self.typingDone)
 
@@ -442,7 +448,7 @@ class TyperWindow(QWidget):
     self.setLayout(
       FBoxLayout(
         [
-          (self._prog_layout, 0),
+          (self._progress_layout, 0),
           # QPushButton("test", clicked=self.XXX),
           # TyperOptions(self.S)],
           (self._typer, 100),
@@ -463,8 +469,8 @@ class TyperWindow(QWidget):
     return super().moveEvent(a0)
 
   def typingReady(self, text):
-    self._prog_layout.setCurrentIndex(0)
-    self._prog.setMaximum(len(text))
+    self._progress_layout.setCurrentIndex(0)
+    self._progress_bar.setMaximum(len(text))
 
   def setDefaultText(self):
     log.error("setDefaultText() NOT IMPLEMENTED")
@@ -480,7 +486,7 @@ class TyperWindow(QWidget):
 
     self._doc.set_text(txt[2], prologue=(pre + "\n"), epilogue=("\n" + post))
     self._typer.setFocus()
-    self._prog.setValue(0)
+    self._progress_bar.setValue(0)
 
   def updateLabel(self, msg=None):
     text = []
@@ -494,10 +500,15 @@ class TyperWindow(QWidget):
       text.append("Text ready for typing!")
     text.append("Press <b>ESCAPE</b> to cancel at any time.")
     if not self._viscosity_warning_shown:
+      viscosity_warning_msg = str(
+        "This input widget is BETA and uses a <b>different measure for viscosity</b> than "
+        "the previous input widget. It's recommended you use it with a fresh database, if you have"
+        "not already done so."
+      )
       text.extend(
         [
           "",
-          "This input widget is BETA and uses a <b>different measure for viscosity</b> than the old one; for this reason it's recommended you use it with a fresh database!",
+          viscosity_warning_msg,
           "",
         ]
       )
@@ -509,7 +520,7 @@ class TyperWindow(QWidget):
     self.updateLabel(txt)
 
   def typingDone(self, run):
-    self._prog_layout.cycle()
+    self._progress_layout.cycle()
 
     # Various sanity tests.
     if self._current_lesson is None:
@@ -531,10 +542,10 @@ class TyperWindow(QWidget):
 
     self.DB.execute(
       """
-    insert into result
-    (w, text_id, source, wpm, accuracy, viscosity)
-    values (?,?,?, ?,?,?)
-    """,
+      insert into result
+      (w, text_id, source, wpm, accuracy, viscosity)
+      values (?,?,?, ?,?,?)
+      """,
       (now, textid, srcid, wpm, acc, visc),
     )
 
@@ -547,7 +558,9 @@ class TyperWindow(QWidget):
         (0.0, 100.0),
       )
       # TODO: insert error keys here
-      self.updateLabel("Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0 * acc) + v2))
+      self.updateLabel(
+        "Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0 * acc) + v2)
+      )
 
     self.DB.commit()
     # type (0: char, 1: trigram, 2: word)
@@ -601,20 +614,20 @@ class TyperWindow(QWidget):
     if not is_lesson or self._settings.get("use_lesson_stats"):
       self.DB.executemany_(
         """
-      insert into statistic
-      (time,viscosity,w,count,mistakes,type,data)
-      values (?,?,?,?,?,?,?)
-      """,
+        insert into statistic
+        (time,viscosity,w,count,mistakes,type,data)
+        values (?,?,?,?,?,?,?)
+        """,
         stat_values,
       )
 
       mistakes = Counter((c.char, e) for c in run if c.mistakes > 0 for e in c.errors)
       self.DB.executemany_(
         """
-      insert into mistake
-      (w,target,mistake,count)
-      values (?,?,?,?)
-      """,
+        insert into mistake
+        (w,target,mistake,count)
+        values (?,?,?,?)
+        """,
         [(now, k[0], k[1], v) for k, v in mistakes.items()],
       )
 
@@ -627,7 +640,14 @@ class TyperWindow(QWidget):
       mins = self._settings.get("min_wpm"), self._settings.get("min_acc")
 
     # Determine if to move onto next lesson, repeat, or show review
-    if wpm < mins[0] or acc < mins[1] / 100.0:
+    #
+    # TODO: Below is where you can change the logic for how the program moves to the next lesson
+    # Desired update:
+    # - Review after lesson if we are below typing target, and settings is set for auto-review
+    # - Repeat current lesson if below typing target, and settings is set for no auto-review
+    # - Go to next text if above target typing target
+    below_typing_target = wpm < mins[0] or acc < mins[1] / 100.0
+    if below_typing_target:
       self.setText(self._current_lesson)
     elif not is_lesson and self._settings.get("auto_review"):
       ws = [x for x in stat_values if x[5] == 2]
