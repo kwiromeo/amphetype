@@ -1,19 +1,44 @@
 from typing import Optional, List, Iterable
 import more_itertools
 from pathlib import Path
+import re
 
 
 class LessonExtractor:
   def __init__(self, filepath: str):
-    self._lines = None
-    with open(file=filepath, mode="r", encoding="utf_8_sig") as file:
-      self._lines = file.readlines()
-
+    processed_content = self._replace_triple_quotes(path=filepath)
+    self._lines = processed_content.splitlines()
     self._lessons = None
 
   @property
   def lines(self) -> Optional[List[str]]:
     return self._lines
+
+  def _replace_triple_quotes(self, path) -> str:
+    """
+    Reads a Python file and replaces all triple-quoted strings
+    with the phrase `comment trimmed`.
+    """
+    try:
+      with open(path, "r", encoding="utf-8") as file:
+        content = file.read()
+
+      # Regex explanation:
+      # (?:"""|''') : Non-capturing group for triple double or single quotes
+      # (.*?)       : Non-greedy match for any characters (including newlines via DOTALL)
+      # (?:"""|''') : Closing triple quotes
+      pattern = r'(?:"""|\'\'\')(.*?)(?:"""|\'\'\')'
+
+      # We use flags=re.DOTALL so that the '.' matches newlines
+      replaced_comment_msg = '"""comment trimmed"""'
+      updated_content = re.sub(pattern, replaced_comment_msg, content, flags=re.DOTALL)
+
+      return updated_content
+
+    except FileNotFoundError:
+      return "Error: The file was not found."
+    except Exception as e:
+      return f"An error occurred: {e}"
 
   def _trim_prefix_space(self, lines: List[str]) -> List[str]:
     space_length = []
@@ -45,7 +70,7 @@ class LessonExtractor:
         continue
 
       trimmed_lesson = self._trim_prefix_space(split)
-      lesson = "".join(trimmed_lesson)
+      lesson = "\n".join(trimmed_lesson)
       found_lessons.append(lesson)
     return found_lessons
 
@@ -60,6 +85,6 @@ class LessonExtractor:
 def create_id_from_path(filepath: str):
   path_parts = Path(filepath).parts
 
-  assert len(path_parts) >= 2, "path is too short to create pseudo part"
-  pseudo_path = f"{path_parts[-2]}::{path_parts[-1]}"
-  return pseudo_path
+  assert len(path_parts) >= 2, "path is too short to create a lesson id"
+  code_lesson_id = f"{path_parts[-2]}::{path_parts[-1]}"
+  return code_lesson_id
