@@ -7,7 +7,8 @@ import re
 class LessonExtractor:
   def __init__(self, filepath: str):
     processed_content = self._replace_long_comments(path=filepath)
-    self._lines = processed_content.splitlines()
+    stripped_content = self._remove_leading_comments(processed_content)
+    self._lines = stripped_content.splitlines()
     self._lessons = None
 
   @property
@@ -49,6 +50,27 @@ class LessonExtractor:
       return "Error: File not found."
     except Exception as e:
       return f"An error occurred: {e}"
+
+  def _remove_leading_comments(self, code_string: str) -> str:
+    """
+    Removes comments and empty lines from the beginning of a string,
+    stopping at the first line of functional code.
+    """
+    lines = code_string.splitlines()
+    first_code_index = 0
+
+    # Iterate through the lines to find the start of the code
+    for index, line in enumerate(lines):
+      # Strip whitespace to check if the line is empty or a comment
+      stripped_line = line.lstrip()
+
+      # If the line is NOT a comment and NOT empty, we found the start
+      if stripped_line and not stripped_line.startswith("#"):
+        first_code_index = index
+        break
+
+    # Join and return only from the first code line onwards
+    return "\n".join(lines[first_code_index:])
 
   def _trim_prefix_space(self, lines: List[str]) -> List[str]:
     space_length = []
