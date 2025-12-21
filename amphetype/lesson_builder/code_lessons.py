@@ -6,7 +6,7 @@ import re
 
 class LessonExtractor:
   def __init__(self, filepath: str):
-    processed_content = self._replace_triple_quotes(path=filepath)
+    processed_content = self._replace_long_comments(path=filepath)
     self._lines = processed_content.splitlines()
     self._lessons = None
 
@@ -14,29 +14,39 @@ class LessonExtractor:
   def lines(self) -> Optional[List[str]]:
     return self._lines
 
-  def _replace_triple_quotes(self, path) -> str:
+  def _replace_long_comments(self, path):
     """
-    Reads a Python file and replaces all triple-quoted strings
-    with the phrase `comment trimmed`.
+    Reads a Python file, counts the lines in triple-quoted strings,
+    and replaces them with 'trimmed comments' if they have 4 or more lines.
     """
     try:
       with open(path, "r", encoding="utf-8") as file:
         content = file.read()
 
       # Regex explanation:
-      # (?:"""|''') : Non-capturing group for triple double or single quotes
-      # (.*?)       : Non-greedy match for any characters (including newlines via DOTALL)
-      # (?:"""|''') : Closing triple quotes
-      pattern = r'(?:"""|\'\'\')(.*?)(?:"""|\'\'\')'
+      # ("""|''') : Captures the opening triple quotes (double or single)
+      # (.*?)     : Non-greedy match for the content
+      # \1        : Backreference ensures the closing quotes match the opening ones
+      pattern = r'("""|\'\'\')(.*?)\1'
 
-      # We use flags=re.DOTALL so that the '.' matches newlines
-      replaced_comment_msg = '"""comment trimmed"""'
-      updated_content = re.sub(pattern, replaced_comment_msg, content, flags=re.DOTALL)
+      def replacer(match):
+        full_match = match.group(0)
+        num_lines = len(full_match.splitlines())
+
+        if num_lines <= 3:
+          # Keep the original string if it's 3 lines or less
+          return full_match
+        else:
+          # Replace with the specified phrase (wrapped in quotes for valid syntax)
+          return '"""trimmed comments"""'
+
+      # re.DOTALL is required to let the '.' match newline characters
+      updated_content = re.sub(pattern, replacer, content, flags=re.DOTALL)
 
       return updated_content
 
     except FileNotFoundError:
-      return "Error: The file was not found."
+      return "Error: File not found."
     except Exception as e:
       return f"An error occurred: {e}"
 
