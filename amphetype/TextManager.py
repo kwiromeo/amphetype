@@ -314,7 +314,7 @@ class TextManager(QWidget):
     found_dir = user_home_dir if str(user_home_dir) else (Settings.DATA_DIR / "texts")
 
     file_dialog = QFileDialog(self, "Import Text From Source Code", directory=str(found_dir))
-    file_dialog.setNameFilters(["UTF-8 source code (*.py)", "All files (*)"])
+    file_dialog.setNameFilters(["UTF-8 source code (*.py | *.js | *.go)", "All files (*)"])
     file_dialog.setFileMode(QFileDialog.ExistingFiles)
     file_dialog.setAcceptMode(QFileDialog.AcceptOpen)
 
