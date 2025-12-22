@@ -177,9 +177,11 @@ class LessonDocument(QTextDocument):
     c.setPosition(self._end.position(), c.KeepAnchor)
     return c
 
-  def sanitize(self, text):
+  def sanitize(self, text: str) -> str:
     text = text.replace("\r\n", "\n")
     text = text.replace("\r", "\n")
+    # TODO (Romeo K. Dec 21, 2025): consider enabling visual feedback for tab character
+    text = text.replace("\t", "  ")  # replace tabs with two spaces
     text = text.replace("\n", RETURN_CHAR)
     return text
 
