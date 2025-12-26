@@ -32,9 +32,12 @@ dev = [
     "djlint"
 ]
 
-# Required for windows
+# Select correct version of pyqt5-qt5 for operating system
 [tool.uv]
-constraint-dependencies = ["pyqt5-qt5 <=5.15.2"]
+constraint-dependencies = [
+    "pyqt5-qt5 <=5.15.2; sys_platform == 'win32'",
+    "pyqt5-qt5 > 5.15.2; sys_platform == 'darwin' or sys_platform == 'linux'"
+]
 
 [project.urls]
 Homepage = "https://gitlab.com/franksh/amphetype"
