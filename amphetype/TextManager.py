@@ -197,6 +197,9 @@ class TextManager(QWidget):
     set_lesson_accuracy_layout.addWidget(SettingsEdit("min_lesson_acc"), 1)
 
     settings_panel.addWidget(
+      WordWrapLabel("<b>Set threshold for reapeating text:</b>")
+    )
+    settings_panel.addWidget(
       WordWrapLabel("Repeat <i>texts</i> that don't meet the following requirements:\n")
     )
     settings_panel.addLayout(set_text_wpm_layout)
@@ -207,6 +210,9 @@ class TextManager(QWidget):
     repeat_settings_divider.setFrameShadow(QFrame.Sunken)
     settings_panel.addWidget(repeat_settings_divider)
 
+    settings_panel.addWidget(
+      WordWrapLabel("<b>Set threshold for reapeating lessons:</b>")
+    )
     settings_panel.addWidget(
       WordWrapLabel("Repeat <i>lessons</i> that don't meet the following requirements:\n")
     )
