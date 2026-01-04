@@ -109,16 +109,17 @@ def _create_lesson_for_trigrams(stat_entries: Iterable[StatisticEntry]) -> Itera
         else:
           query_matches.append(word)
 
+  # print(f"found matches: {found_matches.keys()}")
   # create custom sentences/lessons from the matches
   lesson_words_set = set()
   for _, match_list in found_matches.items():
     lesson_words_set.update(match_list)
 
-  lesson_words = list(lesson_words_set)
-  random.shuffle(lesson_words)
+  source_words = list(lesson_words_set)
+  lesson_words = random.sample(population=source_words, k=150)
 
   return lesson_words
 
 
-def _create_lesson_for_words(issues_list, item_kind, statistic_type) -> Iterable[str]:
+def _create_lesson_for_words(issues_list, item_kind, statistic_type) -> None:
   pass
