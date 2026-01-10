@@ -339,7 +339,7 @@ class TextManager(QWidget):
 
   def _select_text_files(self):
     qf = QFileDialog(self, "Import Text From File(s)", directory=str(Settings.DATA_DIR / "texts"))
-    qf.setNameFilters(["UTF-8 text files (*.txt)", "All files (*)"])
+    qf.setNameFilters(["UTF-8 text files (*.txt | *.md)", "All files (*)"])
     qf.setFileMode(QFileDialog.ExistingFiles)
     qf.setAcceptMode(QFileDialog.AcceptOpen)
 
