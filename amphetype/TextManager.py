@@ -200,7 +200,7 @@ class TextManager(QWidget):
       WordWrapLabel("<b>Set threshold for reapeating text:</b>")
     )
     settings_panel.addWidget(
-      WordWrapLabel("Repeat <i>texts</i> that don't meet the following requirements:\n")
+      WordWrapLabel("Repeat <b><i>texts</i></b> that don't meet the following requirements:\n")
     )
     settings_panel.addLayout(set_text_wpm_layout)
     settings_panel.addLayout(set_text_accuracy_layout)
@@ -214,7 +214,7 @@ class TextManager(QWidget):
       WordWrapLabel("<b>Set threshold for reapeating lessons:</b>")
     )
     settings_panel.addWidget(
-      WordWrapLabel("Repeat <i>lessons</i> that don't meet the following requirements:\n")
+      WordWrapLabel("Repeat <b><i>lessons</i></b> that don't meet the following requirements:\n")
     )
 
     settings_panel.addLayout(set_lesson_wpm_layout)
