@@ -646,19 +646,25 @@ class TyperWindow(QWidget):
     # - Review after lesson if we are below typing target, and settings is set for auto-review
     # - Repeat current lesson if below typing target, and settings is set for no auto-review
     # - Go to next text if above target typing target
-    below_typing_target = wpm < mins[0] or acc < mins[1] / 100.0
-    if below_typing_target:
-      self.setText(self._current_lesson)
-    elif not is_lesson and self._settings.get("auto_review"):
+
+    def _set_review_text() -> None:
       ws = [x for x in stat_values if x[5] == 2]
       if len(ws) == 0:
         self.wantText.emit()
         return
       ws.sort(key=lambda x: (x[4], x[0]), reverse=True)
-
       u = sum(x[4] != 0 for x in ws)
       u += (len(ws) - u) // 4
-
       self.wantReview.emit([x[6] for x in ws[:u]])
+
+    below_typing_target = wpm < mins[0] or acc < mins[1] / 100.0
+
+    if below_typing_target and self._settings.get("auto_review"):
+      _set_review_text()
+
+    if below_typing_target:
+      self.setText(self._current_lesson)
+    elif not is_lesson and self._settings.get("auto_review"):
+      _set_review_text()
     else:
       self.wantText.emit()
