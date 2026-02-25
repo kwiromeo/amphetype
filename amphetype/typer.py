@@ -1,6 +1,7 @@
 import logging as log
 from collections import Counter, defaultdict
 from time import time
+from typing import Optional
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import (
@@ -73,7 +74,11 @@ class Cursor(QTextCursor):
       self.movePosition(select, self.KeepAnchor)
 
   def nextChar(self):
-    return self.document().characterAt(self.position())
+    doc = self.document()
+    if doc is not None:
+      return doc.characterAt(self.position())
+
+    return None
 
   def __repr__(self):
     if self.hasSelection():
@@ -108,10 +113,10 @@ class LessonDocument(QTextDocument):
       else:
         raise RuntimeError(f"internal error: unknown option {cat}/{name}")
     else:
-      attr, fgbg = name.split("_")
+      attr, foreground_background = name.split("_")
       style = getattr(self, f"style_{attr}")
       assert style is not None
-      if fgbg == "bg":
+      if foreground_background == "bg":
         style.setBackground(QBrush(var.get()))
       else:
         style.setForeground(QBrush(var.get()))
@@ -129,9 +134,10 @@ class LessonDocument(QTextDocument):
   progress = pyqtSignal(int)
 
   def __init__(self, font, *args, **kwargs):
-    super().__init__(*args, undoRedoEnabled=False, **kwargs)
+    super().__init__(*args, **kwargs)
     # f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
     # f.setPointSize(16)
+    self.setUndoRedoEnabled(False)
     self.setDefaultFont(font)
     self.set_text("default text")
 
@@ -272,17 +278,17 @@ class LessonDocument(QTextDocument):
       if self.cursor.atBlockStart():
         self.cursor.movePosition(mark.PreviousCharacter)
         continue
-      c = self._run.pop_char()
+      found_char = self._run.pop_char()
       log.debug(
         "backspacing over <%s> (by_word=%s protected=%s cursor=%s mark=%s)",
-        c,
+        found_char,
         by_word,
         protected,
         str(self.cursor),
         str(mark),
       )
-      if c is not None:
-        self.cursor.insertText(c, self.style_untyped)
+      if found_char is not None:
+        self.cursor.insertText(found_char, self.style_untyped)
         self.cursor.movePosition(QTextCursor.PreviousCharacter)
       self.cursor.deletePreviousChar()
 
@@ -292,25 +298,23 @@ class LessonDocument(QTextDocument):
     self.sig_position.emit(self.cursor)
 
 
-### WIDGET
-
-
 class TyperWidget(QTextEdit):
   def __init__(self, settings, *args, text=None, **kwargs):
     # Need to set TextEditable flag to make the cursor the normal
     # blinky kind. Not sure how to show it for read-only mode.
-    super().__init__(
-      *args,
-      contextMenuPolicy=Qt.NoContextMenu,
-      textInteractionFlags=Qt.TextEditable,
-      objectName="TyperWidget",
-      undoRedoEnabled=False,
-      cursorWidth=3,
-      **kwargs,
-    )
+    super().__init__(*args, **kwargs)
 
+    # Set individual properties via methods
+    self.setObjectName("TyperWidget")
+    self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+    self.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditable)
+    self.setUndoRedoEnabled(False)
+    self.setCursorWidth(3)
+
+    # Use settings from given input
     self._settings = settings
     self._lesson = None
+
     # settings('lenient_mode').bind_value(self.setLenientMode)
     # settings('require_space').bind_value(self.setRequireSpace)
     settings("overwrite_mode").bind_value(self.setOverwriteMode)
@@ -409,7 +413,7 @@ class TyperWindow(QWidget):
     self._typer = TyperWidget(self.S)
     hack = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Ignored)
     self._label = QLabel(wordWrap=True, sizePolicy=hack)
-    label_stylesheet = """ 
+    label_stylesheet = """
       font-size: 12pt;
       font-family: arial;
       """
@@ -431,8 +435,8 @@ class TyperWindow(QWidget):
     for var in self._settings.typer_colors:
       var.onChange.connect(doc.onColor)
       doc.onColor(var)
-    for vname in ["para_lineheight", "para_margin"]:
-      var = self._settings.typer_settings(vname)
+    for entry in ["para_lineheight", "para_margin"]:
+      var = self._settings.typer_settings(entry)
       var.onChange.connect(doc.onColor)
       doc.onColor(var)
 
@@ -459,14 +463,14 @@ class TyperWindow(QWidget):
   def updateFont(self):
     self._doc.setDefaultFont(self._settings.getFont("typer_font"))
 
-  def showEvent(self, a0: QShowEvent):
+  def showEvent(self, a0: Optional[QShowEvent]):
     self._typer.setFocus()
     self.updateFont()
     return super().showEvent(a0)
 
-  def moveEvent(self, a0: QMoveEvent) -> None:
+  def moveEvent(self, a0: Optional[QMoveEvent]) -> None:
     self.updateFont()
-    return super().moveEvent(a0)
+    super().moveEvent(a0)
 
   def typingReady(self, text):
     self._progress_layout.setCurrentIndex(0)
@@ -478,8 +482,8 @@ class TyperWindow(QWidget):
 
   def setText(self, txt):
     self._current_lesson = txt
-    textid, _, _ = txt
-    pre, _, post = self.DB.getTextContext(textid)
+    text_id, _, _ = txt
+    pre, _, post = self.DB.getTextContext(text_id)
 
     pre = "[BEGIN]" if pre is None else pre[2]
     post = "[END]" if post is None else post[2]
@@ -536,9 +540,8 @@ class TyperWindow(QWidget):
       return self.typingFailed("Invalid run? (~0 duration)")
 
     now = time()
-    textid, srcid, _ = self._current_lesson
+    text_id, src_id, _ = self._current_lesson
     wpm, visc, acc = run.result(accuracy=True)
-    secs_per_char = 1.0 / run.per_sec
 
     self.DB.execute(
       """
@@ -546,7 +549,7 @@ class TyperWindow(QWidget):
       (w, text_id, source, wpm, accuracy, viscosity)
       values (?,?,?, ?,?,?)
       """,
-      (now, textid, srcid, wpm, acc, visc),
+      (now, text_id, src_id, wpm, acc, visc),
     )
 
     # Update last view
@@ -559,7 +562,7 @@ class TyperWindow(QWidget):
       )
       # TODO: insert error keys here
       self.updateLabel(
-        "Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((wpm, 100.0 * acc) + v2)
+        "Last: %.1f WPM (%.1f%%), last 10 average: %.1f WPM (%.1f%%)" % ((wpm, 100.0 * acc) + v2)
       )
 
     self.DB.commit()
@@ -607,9 +610,9 @@ class TyperWindow(QWidget):
         tp = 0
       stat_values.append((s.median(), viscosity, now, len(s), s.flawed(), tp, k))
 
-    # print(stat_valuess)
+    # print(stat_values)
 
-    is_lesson = self.DB.fetchone("select discount from source where rowid=?", (None,), (srcid,))[0]
+    is_lesson = self.DB.fetchone("select discount from source where rowid=?", (None,), (src_id,))[0]
 
     if not is_lesson or self._settings.get("use_lesson_stats"):
       self.DB.executemany_(
