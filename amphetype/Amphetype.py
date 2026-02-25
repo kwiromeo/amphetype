@@ -33,19 +33,20 @@ def _get_os_name() -> OperatingSystem:
 # Init QT and set appname.
 class AmphetypeApp(QApplication):
   def __init__(self, *args, **kwargs):
-    super().__init__(sys.argv, *args, applicationName="amphetype", **kwargs)
+    super().__init__(sys.argv)
+    self.setApplicationName("Amphetype")
 
 
 app = AmphetypeApp()
 
 # Import Config.py; this will do argument parsing and set up the
 # global var "Settings".
-from amphetype.Config import Settings
+from amphetype.Config import Settings # noqa
 
 app.settings = Settings
 
 # Only AFTER settings has been initialized, import database:
-from amphetype.Data import DB
+from amphetype.Data import DB # noqa
 
 app.DB = DB
 
