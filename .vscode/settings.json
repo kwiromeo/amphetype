@@ -7,7 +7,9 @@
         "colemak",
         "Hestvik",
         "Neue",
-        "Segoe"
+        "ngrams",
+        "Segoe",
+        "visc"
     ],
     "cSpell.ignorePaths": [
         "package-lock.json",
