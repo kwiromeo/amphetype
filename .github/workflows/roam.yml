@@ -1,7 +1,7 @@
 name: Roam Code Analysis
 on:
   pull_request:
-    branches: [main, master]
+    branches: [main, with-updates]
 permissions:
   contents: read
   pull-requests: write
