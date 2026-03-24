@@ -412,9 +412,11 @@ class TyperWindow(QWidget):
     self._current_lesson = None
     self._typer = TyperWidget(self.S)
     hack = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Ignored)
-    self._label = QLabel(wordWrap=True, sizePolicy=hack)
+    self._label = QLabel()
+    self._label.setWordWrap(True)
+    self._label.setSizePolicy(hack)
     label_stylesheet = """
-      font-size: 12pt;
+      font-size: 16pt;
       font-family: arial;
       """
     self._label.setStyleSheet(label_stylesheet)
