@@ -20,11 +20,16 @@ def dampen(x, n=10):
 
 
 class ResultModel(AmphModel):
+  # Skip the first column (text_id or aggregate identifier) when displaying data.
+  hidden = 1
+
   def signature(self):
     self.source = None
     self.data_ = []
-    self.hidden = 1
-    return (["When", "Source", "WPM", "Accuracy", "Viscosity"], [self.formatWhen, None, "%.1f", "%.1f%%", "%.1f"])
+    return (
+      ["When", "Source", "WPM", "Accuracy", "Viscosity"],
+      [self.formatWhen, None, "%.1f", "%.1f%%", "%.1f"],
+    )
 
   def populateData(self, idx):
     if len(idx) > 0:
@@ -95,7 +100,8 @@ class PerformanceHistory(QWidget):
             self.cb_source,
             "and group by",
             SettingsCombo(
-              "perf_group_by", ["<no grouping>", "%d sessions" % Settings.get("def_group_by"), "sitting", "day"]
+              "perf_group_by",
+              ["<no grouping>", "%d sessions" % Settings.get("def_group_by"), "sitting", "day"],
             ),
             None,
             AmphButton("Update", self.updateData),

@@ -37,9 +37,13 @@ class WordWrapLabel(QLabel):
 
 
 class AmphModel(QAbstractItemModel):
+  # hidden represents the number of internal metadata columns at the start of each
+  # data row (like database rowids) that should not be displayed in the UI.
+  # This value is used as an offset when fetching data for display.
+  hidden = 0
+
   def __init__(self, *args):
     super(AmphModel, self).__init__(*args)
-    self.hidden = 0
     self.levels = 2
     self.rows = None
     self.head, self.fmt = self.signature()
