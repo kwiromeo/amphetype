@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
   QHBoxLayout,
   QLabel,
   QLayout,
+  QMenu,
   QMessageBox,
   QProgressBar,
   QVBoxLayout,
@@ -28,9 +29,12 @@ from amphetype.QtUtil import (
 from amphetype.Text import LessonMiner
 from amphetype.lesson_builder import code_lessons
 
+
 class SourceModel(AmphModel):
+  # Skip the first column (rowid) when displaying data in the tree view.
+  hidden = 1
+
   def signature(self):
-    self.hidden = 1
     return (
       ["Source", "Length", "Results", "WPM", "Disabled"],
       [None, None, None, "%.1f", None],
@@ -56,7 +60,7 @@ class SourceModel(AmphModel):
     if len(idxs) > 1:
       return []
 
-    r = self.rows[idxs[0]]
+    source_row = self.rows[idxs[0]]
 
     return list(
       map(
@@ -67,7 +71,7 @@ class SourceModel(AmphModel):
         left join (select text_id,count(*) as count,agg_median(wpm) as m from result group by text_id) as r
           on (t.id = r.text_id)
         order by t.rowid""",
-          (r[0],),
+          (source_row[0],),
         ),
       )
     )
@@ -78,7 +82,7 @@ class TextManager(QWidget):
   gotoText = pyqtSignal()
   refreshSources = pyqtSignal()
 
-  split_text = [
+  welcome_message_lines = [
     "Welcome to Amphetype!\n",
     "Amphetype is a layout-agnostic typing program that measures your speed and progress",
     "while identifying typing problems.\n",
@@ -88,9 +92,9 @@ class TextManager(QWidget):
     "Later on you can generate highly customizable lessons directly from your statistics!\n",
     "Good luck!",
   ]
-  welcome_text = " ".join(split_text)
+  welcome_text = " ".join(welcome_message_lines)
 
-  defaultText = (
+  empty_db_placeholder = (
     "",
     0,
     welcome_text,
@@ -99,21 +103,23 @@ class TextManager(QWidget):
   def __init__(self, *args):
     super(TextManager, self).__init__(*args)
 
-    self.diff_eval = lambda x: 1
+    self.difficulty_evaluator = lambda x: 1
     self.model = SourceModel()
-    tv = AmphTree(self.model)
-    tv.doubleClicked["QModelIndex"].connect(self.onDoubleClicked)
-    tv.resizeColumnToContents(0)
-    tv.setColumnWidth(0, max(340, tv.columnWidth(0) + 40))
+    sources_tree_view = AmphTree(self.model)
+    sources_tree_view.doubleClicked["QModelIndex"].connect(self.onDoubleClicked)
+    sources_tree_view.resizeColumnToContents(0)
+    sources_tree_view.setColumnWidth(0, max(340, sources_tree_view.columnWidth(0) + 40))
 
     # Set column size of tree view columns in Text Manager
     # This prevents having a bottom scroll wheel to view all the fields in the
     # tree view
-    tv.setColumnWidth(1, min(60, tv.columnWidth(1) + 10))
-    tv.setColumnWidth(2, min(60, tv.columnWidth(2) + 10))
-    tv.setColumnWidth(3, min(60, tv.columnWidth(3) + 10))
-    tv.setColumnWidth(4, min(60, tv.columnWidth(4) + 10))
-    self.tree = tv
+    sources_tree_view.setColumnWidth(1, min(60, sources_tree_view.columnWidth(1) + 10))
+    sources_tree_view.setColumnWidth(2, min(60, sources_tree_view.columnWidth(2) + 10))
+    sources_tree_view.setColumnWidth(3, min(60, sources_tree_view.columnWidth(3) + 10))
+    sources_tree_view.setColumnWidth(4, min(60, sources_tree_view.columnWidth(4) + 10))
+    self.tree = sources_tree_view
+    self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+    self.tree.customContextMenuRequested.connect(self.on_context_menu)
 
     self.progress = QProgressBar()
     self.progress.setRange(0, 100)
@@ -196,9 +202,7 @@ class TextManager(QWidget):
     set_lesson_accuracy_layout.addWidget(WordWrapLabel("Accuracy (lesson): "), 2)
     set_lesson_accuracy_layout.addWidget(SettingsEdit("min_lesson_acc"), 1)
 
-    settings_panel.addWidget(
-      WordWrapLabel("<b>Set threshold for reapeating text:</b>")
-    )
+    settings_panel.addWidget(WordWrapLabel("<b>Set threshold for reapeating text:</b>"))
     settings_panel.addWidget(
       WordWrapLabel("Repeat <b><i>texts</i></b> that don't meet the following requirements:\n")
     )
@@ -210,9 +214,7 @@ class TextManager(QWidget):
     repeat_settings_divider.setFrameShadow(QFrame.Sunken)
     settings_panel.addWidget(repeat_settings_divider)
 
-    settings_panel.addWidget(
-      WordWrapLabel("<b>Set threshold for reapeating lessons:</b>")
-    )
+    settings_panel.addWidget(WordWrapLabel("<b>Set threshold for reapeating lessons:</b>"))
     settings_panel.addWidget(
       WordWrapLabel("Repeat <b><i>lessons</i></b> that don't meet the following requirements:\n")
     )
@@ -272,47 +274,47 @@ class TextManager(QWidget):
 
     return main_stack_panel
 
-  def _set_select(self, v):
-    if v == 0 or v == 1:
-      self.diff_eval = lambda x: 1
+  def _set_select(self, method_index):
+    if method_index == 0 or method_index == 1:
+      self.difficulty_evaluator = lambda x: 1
       self.nextText()
       return
 
-    hist = time.time() - 86400.0 * Settings.get("history")
-    tri = dict(
+    history_threshold = time.time() - 86400.0 * Settings.get("history")
+    trigram_wpm_map = dict(
       DB.execute(
         """
           select data,agg_median(time) as wpm from statistic
           where w >= ? and type = 1
           group by data""",
-        (hist,),
+        (history_threshold,),
       ).fetchall()
-    )  # [(t, (m, c)) for t, m, c in
+    )
 
-    g = list(tri.values())
-    if len(g) == 0:
+    wpm_values = list(trigram_wpm_map.values())
+    if len(wpm_values) == 0:
       return lambda x: 1
-    g.sort(reverse=True)
-    expect = g[len(g) // 4]
+    wpm_values.sort(reverse=True)
+    fallback_wpm = wpm_values[len(wpm_values) // 4]
 
-    def _func(v):
-      text = v[2]
-      v = 0
-      s = 0.0
-      for i in range(0, len(text) - 2):
-        t = text[i : i + 3]
-        if t in tri:
-          s += tri[t]
+    def calc_text_difficulty(text_record):
+      text_content = text_record[2]
+      unknown_trigrams = 0
+      total_wpm = 0.0
+      for i in range(0, len(text_content) - 2):
+        trigram = text_content[i : i + 3]
+        if trigram in trigram_wpm_map:
+          total_wpm += trigram_wpm_map[trigram]
         else:
-          s += expect
-          v += 1
-      avg = s / (len(text) - 2)
+          total_wpm += fallback_wpm
+          unknown_trigrams += 1
+      average_wpm = total_wpm / (len(text_content) - 2)
 
-      divider = 1 if avg < 1 else avg
+      divider = 1 if average_wpm < 1 else average_wpm
 
       return 12.0 / divider
 
-    self.diff_eval = _func
+    self.difficulty_evaluator = calc_text_difficulty
     self.nextText()
 
   def _select_code_files(self) -> None:
@@ -372,8 +374,8 @@ class TextManager(QWidget):
     DB.commit()
 
   def addTexts(self, source: str, texts: typing.Iterable[str], lesson=None, update=True):
-    id = DB.getSource(source, lesson)
-    r: typing.List[str] = []
+    source_id = DB.getSource(source, lesson)
+    inserted_text_ids: typing.List[str] = []
     for x in texts:
       h = hashlib.sha1()
       h.update(x.encode("utf-8"))
@@ -382,22 +384,26 @@ class TextManager(QWidget):
       try:
         DB.execute(
           "insert into text (id,text,source,disabled) values (?,?,?,?)",
-          (txt_id, x, id, dis),
+          (txt_id, x, source_id, dis),
         )
-        r.append(txt_id)
+        inserted_text_ids.append(txt_id)
       except Exception:
         pass  # silently skip ...
     if update:
       self.update_sources_list()
     if lesson:
       DB.commit()
-    return r
+    return inserted_text_ids
 
   def newReview(self, review):
-    q = self.addTexts("<Reviews>", [review], lesson=2, update=False)
-    if q:
-      v = DB.fetchone("select id,source,text from text where id = ?", self.defaultText, q)
-      self.emit_text(v)
+    inserted_ids = self.addTexts("<Reviews>", [review], lesson=2, update=False)
+    if inserted_ids:
+      text_record = DB.fetchone(
+        "select id,source,text from text where id = ?",
+        self.empty_db_placeholder,
+        (inserted_ids[0],),
+      )
+      self.emit_text(text_record)
     else:
       self.nextText()
 
@@ -406,43 +412,45 @@ class TextManager(QWidget):
     self.model.reset()
 
   def nextText(self):
-    type = Settings.get("select_method")
+    selection_mode = Settings.get("select_method")
 
-    if type != 1:
+    if selection_mode != 1:
       # Not in order
-      v = DB.execute(
+      text_records = DB.execute(
         "select id,source,text from text where disabled is null order by random() limit %d"
         % Settings.get("num_rand")
       ).fetchall()
-      if len(v) == 0:
-        v = None
-      elif type == 2:
-        v = min(v, key=self.diff_eval)
-      elif type == 3:
-        v = max(v, key=self.diff_eval)
+      if len(text_records) == 0:
+        text_record = None
+      elif selection_mode == 2:
+        text_record = min(text_records, key=self.diff_eval)
+      elif selection_mode == 3:
+        text_record = max(text_records, key=self.diff_eval)
       else:
-        v = v[0]  # random, just pick the first
+        text_record = text_records[0]  # random, just pick the first
     else:
       # Fetch in order
-      last_id = (0,)
-      g = DB.fetchone(
+      last_text_rowid = (0,)
+      last_text_id = DB.fetchone(
         """select r.text_id
         from result as r left join source as s on (r.source = s.rowid)
         where (s.discount is null) or (s.discount = 1) order by r.w desc limit 1""",
         None,
       )
-      if g is not None:
-        last_id = DB.fetchone("select rowid from text where id = ?", last_id, g)
-      v = DB.fetchone(
+      if last_text_id is not None:
+        last_text_rowid = DB.fetchone(
+          "select rowid from text where id = ?", last_text_rowid, last_text_id
+        )
+      text_record = DB.fetchone(
         "select id,source,text from text where rowid > ? and disabled is null order by rowid asc limit 1",
         None,
-        last_id,
+        last_text_rowid,
       )
 
-    if v is None:
-      v = self.defaultText
+    if text_record is None:
+      text_record = self.defaultText
 
-    self.emit_text(v)
+    self.emit_text(text_record)
 
   def removeUnused(self):
     DB.execute("""
@@ -474,7 +482,7 @@ class TextManager(QWidget):
     self.update_sources_list()
 
   def disableSelected(self):
-    cats, texts = self.getSelected()
+    sources, texts = self.getSelected()
     DB.setRegex(Settings.get("text_regex"))
     DB.executemany(
       """update text set disabled = ifelse(disabled,NULL,1)
@@ -484,40 +492,94 @@ class TextManager(QWidget):
     DB.executemany(
       """update text set disabled = ifelse(disabled,NULL,1)
         where source = ? and regex_match(text) = 1""",
-      [(x,) for x in cats],
+      [(x,) for x in sources],
     )
     self.update_sources_list()
 
+  def on_context_menu(self, pos):
+    menu = QMenu(self)
+    delete_action = menu.addAction("Delete Selected")
+    action = menu.exec_(self.tree.mapToGlobal(pos))
+    if action == delete_action:
+      self.deleteSelected()
+
+  def deleteSelected(self):
+    sources, texts = self.getSelected()
+    if not sources and not texts:
+      return
+
+    msg = f"Are you sure you want to delete {len(sources)} sources and {len(texts)} texts?\n\nThis will also delete ALL associated results and statistics."
+    if QMessageBox.question(self, "Confirm Deletion", msg) != QMessageBox.Yes:
+      return
+
+    # Delete Sources
+    for rowid in sources:
+      # Delete related stats/mistakes via results
+      DB.execute("DELETE FROM mistake WHERE w IN (SELECT w FROM result WHERE source = ?)", (rowid,))
+      DB.execute(
+        "DELETE FROM statistic WHERE w IN (SELECT w FROM result WHERE source = ?)", (rowid,)
+      )
+      DB.execute("DELETE FROM result WHERE source = ?", (rowid,))
+      DB.execute("DELETE FROM text WHERE source = ?", (rowid,))
+      DB.execute("DELETE FROM source WHERE rowid = ?", (rowid,))
+
+    # Delete Individual Texts
+    for rowid in texts:
+      # Get the unique text ID (hash) to clean up results
+      text_id = DB.fetchone("SELECT id FROM text WHERE rowid = ?", (None,), (rowid,))[0]
+      if text_id:
+        DB.execute(
+          "DELETE FROM mistake WHERE w IN (SELECT w FROM result WHERE text_id = ?)", (text_id,)
+        )
+        DB.execute(
+          "DELETE FROM statistic WHERE w IN (SELECT w FROM result WHERE text_id = ?)", (text_id,)
+        )
+        DB.execute("DELETE FROM result WHERE text_id = ?", (text_id,))
+      DB.execute("DELETE FROM text WHERE rowid = ?", (rowid,))
+
+    DB.commit()
+    self.update_sources_list()
+
+    # Ensure we aren't pointing to a deleted text
+    self.nextText()
+
   def getSelected(self):
     texts = []
-    cats = []
+    sources = []
     for idx in self.tree.selectedIndexes():
       if idx.column() != 0:
         continue
       if idx.parent().isValid():
         texts.append(self.model.data(idx, Qt.UserRole)[0])
       else:
-        cats.append(self.model.data(idx, Qt.UserRole)[0])
-    return (cats, texts)
+        sources.append(self.model.data(idx, Qt.UserRole)[0])
+    return (sources, texts)
 
-  def onDoubleClicked(self, idx):
-    p = idx.parent()
-    if not p.isValid():
+  def onDoubleClicked(self, index):
+    parent_index = index.parent()
+    if not parent_index.isValid():
       return
 
-    q = self.model.data(idx, Qt.UserRole)
-    v = DB.fetchall("select id,source,text from text where rowid = ?", (q[0],))
+    row_data = self.model.data(index, Qt.UserRole)
+    text_record = DB.fetchone(
+      "select id,source,text from text where rowid = ?", self.empty_db_placeholder, (row_data[0],)
+    )
 
-    self.cur = v[0] if len(v) > 0 else self.defaultText
-    self.emit_text(self.cur)
+    self.current_text_record = text_record
+    self.emit_text(self.current_text_record)
     self.gotoText.emit()
 
-  def emit_text(self, v):
-    log.info("setting new text id=%s length=%d source=%s", v[0], len(v[2]), v[1])
+  def emit_text(self, text_record):
+    log.info(
+      "setting new text id=%s length=%d source=%s",
+      text_record[0],
+      len(text_record[2]),
+      text_record[1],
+    )
     if Settings.get("text_force_ascii"):
-      text_id, text_src, found_txt = v
-      v = (text_id, text_src, force_ascii(found_txt))
-    self.setText.emit(v)
+      text_id, text_src, found_txt = text_record
+      text_record = (text_id, text_src, force_ascii(found_txt))
+    self.setText.emit(text_record)
 
 
 _bothered = False
