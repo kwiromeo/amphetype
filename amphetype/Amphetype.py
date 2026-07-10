@@ -32,6 +32,9 @@ def _get_os_name() -> OperatingSystem:
 
 # Init QT and set appname.
 class AmphetypeApp(QApplication):
+  settings: object
+  DB: object
+
   def __init__(self, *args, **kwargs):
     super().__init__(sys.argv)
     self.setApplicationName("Amphetype")

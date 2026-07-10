@@ -137,7 +137,8 @@ class AmphModel(QAbstractItemModel):
   def sort(self, col, order=Qt.AscendingOrder):
     self.beginResetModel()
     reverse = order != Qt.AscendingOrder
-    self.rows.sort(key=cmp_to_key(maybe_cmp_func(lambda z: z[col + self.hidden])), reverse=reverse)
+    if self.rows is not None:
+      self.rows.sort(key=cmp_to_key(maybe_cmp_func(lambda z: z[col + self.hidden])), reverse=reverse)
     self.idxs = {}
     self.endResetModel()
 

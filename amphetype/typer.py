@@ -405,6 +405,7 @@ class TyperWindow(QWidget):
     super().__init__(*args, **kwargs)
 
     app = QApplication.instance()
+    assert app is not None
     self._settings = app.settings
     self.S = app.settings.typer_settings
     self.DB = app.DB

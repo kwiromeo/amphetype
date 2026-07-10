@@ -17,3 +17,31 @@ tasks:
   build-app:
     cmds:
       - pyinstaller --clean amphetype-mac.spec
+
+  ty:
+    desc: Run ty type checker (uvx ty check)
+    cmds:
+      - uvx ty check
+
+  test:
+    desc: Run the smoke tests
+    cmds:
+      - python tests/test_replay_smoke.py
+      - python tests/test_timingtuple.py
+      - python tests/test_data_aggregates.py
+
+  format:
+    desc: Run ruff format
+    cmds:
+      - uvx ruff format .
+
+  lint:
+    desc: Run ruff lint
+    cmds:
+      - uvx ruff check .
+
+  ruff:
+    desc: Run ruff format and lint
+    cmds:
+      - uvx ruff format .
+      - uvx ruff check .

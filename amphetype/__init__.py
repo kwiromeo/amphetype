@@ -81,12 +81,7 @@ AMPH_LOCAL     setting this to "1" is the same as specifying "-l".
 cli_options = _args_and_env()
 
 # Define a timer to use.
-if sys.hexversion < 0x30A0000 and platform.system() == "Windows":
-  # hack hack, hackity hack
-  timer = time.clock
-  timer()
-else:
-  timer = time.perf_counter
+timer = time.perf_counter
 
 logging.info(f"Starting Amphetype v%s on (%s, %08x)", __version__, platform.system(), sys.hexversion)
 

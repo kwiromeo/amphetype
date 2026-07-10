@@ -81,7 +81,7 @@ def create_lesson(issues_list, item_kind, statistic_type) -> Iterable[str]:
 
 
 def _create_lesson_for_keys(issues_list, item_kind, statistic_type) -> Iterable[str]:
-  pass
+  return iter([])
 
 
 def _create_lesson_for_trigrams(stat_entries: Iterable[StatisticEntry]) -> Iterable[str]:
@@ -121,5 +121,5 @@ def _create_lesson_for_trigrams(stat_entries: Iterable[StatisticEntry]) -> Itera
   return lesson_words
 
 
-def _create_lesson_for_words(issues_list, item_kind, statistic_type) -> None:
-  pass
+def _create_lesson_for_words(issues_list, item_kind, statistic_type) -> Iterable[str]:
+  return iter([])

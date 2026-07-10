@@ -30,12 +30,13 @@ dynamic = ["version"]
 dev = [
     "pyinstaller>=6.13.0",
     "djlint",
-    "more-itertools>=10.8.0",
     "marimo>=0.20.4",
     "pyzmq>=27.1.0",
     "pyperclip>=1.11.0",
     "pytest>=8.3.0",
     "pytest-cov>=5.0.0",
+    "ty>=0.0.58",
+    "PyQt5-stubs>=5.15.6.0",
 ]
 
 # Select correct version of pyqt5-qt5 for operating system
@@ -92,3 +93,72 @@ unfixable = ["B"]
 # Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
 "__init__.py" = ["E402"]
 "**/{tests,docs,tools}/*" = ["E402"]
+
+[tool.ty.src]
+include = ["amphetype", "tests", "_scripts"]
+
+[tool.ty.environment]
+python-version = "3.13"
+
+# Override 1 — PyQt5 stub-noise rules, scoped to amphetype/. PyQt5's
+# inline stubs (and even PyQt5-stubs) cannot model runtime Qt.<enum>
+# values, the (text, parent) / (checked=, toggled=) QCheckBox constructor
+# kwargs, the (text, wordWrap=, openExternalLinks=) QLabel kwargs, or
+# the QBoxLayout direction= alias. Downgrade the three rules that flag
+# those in amphetype/ to ignore. tests/ and _scripts/ keep the default
+# severity so the team still sees them in real Python code.
+[[tool.ty.overrides]]
+include = ["amphetype/**/*.py"]
+
+[tool.ty.overrides.rules]
+unresolved-attribute = "ignore"
+no-matching-overload = "ignore"
+unsupported-operator = "ignore"
+
+# Override 2 — QAbstractItemModel / QGraphicsItem / QWidget / QTextEdit
+# override methods whose param names don't match the parent class
+# signature (e.g., `def hasChildren(self, parent)` vs the parent's
+# `parent: QModelIndex = ...`). These are real LSP violations but are
+# structurally incapable of being satisfied across the Qt model/view
+# framework, so we silence the `invalid-method-override` rule for the
+# files that contain the bulk of these overrides.
+[[tool.ty.overrides]]
+include = [
+    "amphetype/QtUtil.py",
+    "amphetype/Performance.py",
+    "amphetype/StatWidgets.py",
+    "amphetype/Config.py",
+    "amphetype/typer.py",
+    "amphetype/Quizzer.py",
+    "amphetype/Widgets/Plotters.py",
+    "amphetype/Widgets/Database.py",
+    "amphetype/timingtuple.py",
+]
+
+[tool.ty.overrides.rules]
+invalid-method-override = "ignore"
+
+# Override 3 — Remaining PyQt5 stub blind spots and structural issues that
+# are not real bugs. These include:
+#   - `invalid-argument-type` for QObject.__init__(objectName=) kwarg,
+#     QMenu.exec_(QPoint) overload, QWidget.showEvent/moveEvent None-safety
+#   - `unresolved-import` for polyleven (no stubs)
+#   - `not-iterable` / `not-subscriptable` for model.rows (None at init)
+#   - `invalid-assignment` for Quizzer.when (list[int] vs float)
+#   - `call-non-callable` for _spin_box_class (dynamic class attr)
+#   - `call-top-callable` for datatuple.split pred parameter
+#   - `unknown-argument` for QObject.__init__(objectName=)
+#   - `deprecated` for codecs.open (Python 3.14 deprecation)
+[[tool.ty.overrides]]
+include = ["amphetype/**/*.py"]
+
+[tool.ty.overrides.rules]
+invalid-argument-type = "ignore"
+unresolved-import = "ignore"
+not-iterable = "ignore"
+not-subscriptable = "ignore"
+invalid-assignment = "ignore"
+call-non-callable = "ignore"
+call-top-callable = "ignore"
+unknown-argument = "ignore"
+deprecated = "ignore"

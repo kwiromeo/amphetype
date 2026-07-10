@@ -151,7 +151,9 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     self.defaults["db_name"] = _dbname
 
     assert QApplication.instance()
-    self.defaults["qt_style"] = QApplication.instance().style().objectName().lower()
+    qapp = QApplication.instance()
+    assert qapp is not None
+    self.defaults["qt_style"] = qapp.style().objectName().lower()
 
     self.typer_settings = self.makeSettings("typer", self.typer_defaults)
     self.typer_colors = self.makeSettings("colors", self.typer_color_defaults)

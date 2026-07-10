@@ -14,6 +14,11 @@ class FVar(QObject):
 
 
 class FValueVar(FVar):
+  onValue: pyqtSignal
+
+  def convert(self, val):
+    return val
+
   def __init__(self, parent, name, val):
     super().__init__(parent, name)
     self._value = self.convert(val)
@@ -55,7 +60,6 @@ class FValueVar(FVar):
       step = self.convert(1)
 
     return self._spin_box_class(minimum=min, maximum=max, singleStep=step, value=self.get(), valueChanged=self.set)
-
 
 class FIntVar(FValueVar):
   onValue = pyqtSignal(int)

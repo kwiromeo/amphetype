@@ -151,19 +151,19 @@ class RunStats(datatuple[CharEntry]):
     def current(self) -> CharEntry | None:
         if self.index >= len(self):
             return None
-        return self[self.index]
+        return tuple.__getitem__(self, self.index)
 
     @property
     def previous(self) -> CharEntry | None:
         if self.index == 0:
             return None
-        return self[self.index - 1]
+        return tuple.__getitem__(self, self.index - 1)
 
     @property
     def next(self) -> CharEntry | None:
         if self.index >= len(self) - 1:
             return None
-        return self[self.index + 1]
+        return tuple.__getitem__(self, self.index + 1)
 
     @property
     def ending(self) -> bool:
@@ -173,7 +173,7 @@ class RunStats(datatuple[CharEntry]):
     def start_end(self) -> tuple[float | None, float | None]:
         if not len(self):
             return (None, None)
-        return (self.started, self[-1].last)
+        return (self.started, tuple.__getitem__(self, -1).last)
 
     @property
     def text(self) -> str:
@@ -183,7 +183,9 @@ class RunStats(datatuple[CharEntry]):
     def duration(self) -> float | None:
         if self.started is None or not self.is_complete():
             return None
-        return self.previous.last - self.started
+        p = self.previous
+        return (p.last if p else 0) - (self.started or 0)
+
 
     @property
     def per_sec(self) -> float | None:
@@ -191,7 +193,7 @@ class RunStats(datatuple[CharEntry]):
             return None
         return len(self) / self.duration
 
-    def __getitem__(self, idx: int | slice) -> RunStats:  # type: ignore[override]
+    def __getitem__(self, idx: int | slice) -> RunStats:
         result = super().__getitem__(idx)
         if isinstance(idx, slice):
             s, _, d = idx.indices(len(self))
@@ -199,7 +201,7 @@ class RunStats(datatuple[CharEntry]):
             if s - d == -1:
                 result.started = self.started
             elif 0 <= s - d < len(self):
-                result.started = self[s - d].last
+                result.started = tuple.__getitem__(self, s - d).last
         return result
 
     def last_was_error(self) -> bool:
@@ -235,13 +237,13 @@ class RunStats(datatuple[CharEntry]):
         if self.started is not None or not self.is_complete():
             return
         i = 0
-        while i < len(self) and self[i].last is None:
+        while i < len(self) and tuple.__getitem__(self, i).last is None:
             i += 1
         med = self.median_timing
         if i == len(self) or med is None:
             log.error("cannot fixup broken run, all times are invalid:\n%s", self)
             return
-        self.started = self[i].last - (i + 1) * med
+        self.started = tuple.__getitem__(self, i).last - (i + 1) * med
 
     @property
     def median_timing(self) -> float | None:

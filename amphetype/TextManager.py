@@ -359,6 +359,7 @@ class TextManager(QWidget):
     qf.show()
 
   def _get_lessons_from_text(self, files: typing.List[str]):
+    assert self.sender() is not None
     self.sender().hide()
     self.progress.show()
     for x in files:

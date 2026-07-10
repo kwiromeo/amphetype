@@ -124,6 +124,10 @@ class AmphDatabase(sqlite3.Connection):
     except Exception:
       self.newDB()
 
+  def executemany_(self, sql, seq):
+    return self.executemany(sql, seq)
+
+
   def resetTimeGroup(self):
     self.lasttime_ = 0.0
     self.time_count_ = 0
