@@ -1,6 +1,5 @@
 import logging as log
 from collections import Counter, defaultdict
-from datetime import datetime
 from time import time
 from typing import Optional
 
@@ -423,16 +422,8 @@ class TyperWindow(QWidget):
     self._label.setStyleSheet(label_stylesheet)
     self._viscosity_warning_shown = False
 
-    # Typing Timer
-    self._lesson_start_time = None
+    # Session Duration
     self._lesson_duration = 0  # in seconds
-
-    # Duration label
-    self._duration_label = QLabel()
-    self._duration_label.setWordWrap(True)
-    self._duration_label.setSizePolicy(hack)
-    self._duration_label.setStyleSheet(label_stylesheet)
-    self._duration_label.setText("Time sent typing: 0")
 
     # Progress Bar
     self._progress_bar = QProgressBar()
@@ -441,7 +432,6 @@ class TyperWindow(QWidget):
       [
         self._label,
         self._progress_widget,
-        self._duration_label,
       ]
     )
 
@@ -462,7 +452,6 @@ class TyperWindow(QWidget):
       doc.onColor(var)
 
     doc.started.connect(self._progress_layout.cycle)
-    doc.started.connect(self._capture_start_time)
     doc.progress.connect(self._progress_bar.setValue)
     doc.ready.connect(self.typingReady)
     doc.completed.connect(self._update_lesson_duration)
@@ -483,26 +472,22 @@ class TyperWindow(QWidget):
       )
     )
 
-  def _capture_start_time(self) -> None:
-    self._lesson_start_time = datetime.now().timestamp()
-
-  def _update_lesson_duration(self) -> None:
+  def _update_lesson_duration(self, run) -> None:
     """
     Update lesson duration time, and update label
     """
-    if self._lesson_start_time is None:
-      return
-    lesson_end_time = datetime.now().timestamp()
-    lesson_duration = lesson_end_time - self._lesson_start_time
-    self._lesson_duration += lesson_duration
+    if run and run.duration:
+      self._lesson_duration += run.duration
 
-    # Add duration message
-    formatted_time = f"{(self._lesson_duration / 60):.2f}"
-    typing_duration_msg = f"Time spent typing since app start: <b>{formatted_time}s</b>"
-
-    # TODO: currently, the duration label does not show up in the UI
-    # investigate why, and fix it
-    self._duration_label.setText(typing_duration_msg)
+  def format_duration(self, seconds: float) -> str:
+    """
+    Formats duration into a human-readable string.
+    """
+    if seconds < 60:
+      return f"{seconds:.1f}s"
+    m = int(seconds // 60)
+    s = int(seconds % 60)
+    return f"{m}m {s}s"
 
   def updateFont(self):
     self._doc.setDefaultFont(self._settings.getFont("typer_font"))
@@ -541,8 +526,9 @@ class TyperWindow(QWidget):
 
     # Add duration message
     if self._lesson_duration:
-      formatted_time = f"{(self._lesson_duration / 60):.2f}"
-      time_spent_msg = f"Time spent typing since app start: <b>{formatted_time}s</b>"
+      time_spent_msg = (
+        f"Time spent typing since app start: <b>{self.format_duration(self._lesson_duration)}</b>"
+      )
       text.extend([time_spent_msg, ""])
 
     # text.append("[This beta typer will not collect statistics currently, don't use it!]")
