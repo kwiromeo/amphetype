@@ -104,6 +104,7 @@ class TextManager(QWidget):
     super(TextManager, self).__init__(*args)
 
     self.difficulty_evaluator = lambda x: 1
+    self._replay_pending = False
     self.model = SourceModel()
     sources_tree_view = AmphTree(self.model)
     sources_tree_view.doubleClicked["QModelIndex"].connect(self.onDoubleClicked)
@@ -132,6 +133,8 @@ class TextManager(QWidget):
     Settings.signal_for("select_method").connect(self._set_select)
     Settings.signal_for("text_force_ascii").connect(self.nextText)
     self._set_select(Settings.get("select_method"))
+
+    self._replay_pending = True
 
   def _create_layout(self) -> QLayout:
     # Add Message at the top of the stack panel
@@ -396,6 +399,7 @@ class TextManager(QWidget):
     return inserted_text_ids
 
   def newReview(self, review):
+    self._replay_pending = False
     inserted_ids = self.addTexts("<Reviews>", [review], lesson=2, update=False)
     if inserted_ids:
       text_record = DB.fetchone(
@@ -411,7 +415,40 @@ class TextManager(QWidget):
     self.refreshSources.emit()
     self.model.reset()
 
+  def _last_incomplete_text(self):
+    """Return (text_id, source, text) for the most recent result that missed
+    its WPM/accuracy target, or None if the last result was good, the text
+    or source has been disabled/deleted, or there are no results."""
+    row = DB.fetchone(
+      """select t.id, t.source, t.text, r.wpm, r.accuracy, s.discount
+      from result r
+      join text t on t.id = r.text_id
+      join source s on s.rowid = r.source
+      where t.disabled is null and s.disabled is null
+      order by r.w desc limit 1""",
+      None,
+    )
+    if row is None:
+      return None
+    text_id, source, text, wpm, accuracy, discount = row
+    if discount:
+      min_wpm = Settings.get("min_lesson_wpm")
+      min_acc = Settings.get("min_lesson_acc")
+    else:
+      min_wpm = Settings.get("min_wpm")
+      min_acc = Settings.get("min_acc")
+    if wpm < min_wpm or accuracy < min_acc / 100.0:
+      return (text_id, source, text)
+    return None
+
   def nextText(self):
+    if self._replay_pending:
+      self._replay_pending = False
+      record = self._last_incomplete_text()
+      if record is not None:
+        self.emit_text(record)
+        return
+
     selection_mode = Settings.get("select_method")
 
     if selection_mode != 1:

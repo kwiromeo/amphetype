@@ -139,7 +139,13 @@ class Typer(QTextEdit):
       )
       self.times[0] = v[0]
       self.when[0] = self.when[1] - self.times[0]
-    return self.when[self.where] - self.when[0], self.where, self.times, self.mistake, self.getMistakes()
+    return (
+      self.when[self.where] - self.when[0],
+      self.where,
+      self.times,
+      self.mistake,
+      self.getMistakes(),
+    )
 
 
 class Quizzer(QWidget):
@@ -210,7 +216,8 @@ class Quizzer(QWidget):
       (0.0, 100.0),
     )
     self.result.setText(
-      "Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)" % ((12.0 / spc, 100.0 * accuracy) + v2)
+      "Last: %.1fwpm (%.1f%%), last 10 average: %.1fwpm (%.1f%%)"
+      % ((12.0 / spc, 100.0 * accuracy) + v2)
     )
 
     self.statsChanged.emit()
@@ -257,7 +264,9 @@ class Quizzer(QWidget):
       v = visc[k].median()
       vals.append((s.median(), v * 100.0, now, len(s), s.flawed(), type(k), k))
 
-    is_lesson = DB.fetchone("select discount from source where rowid=?", (None,), (self.text[1],))[0]
+    is_lesson = DB.fetchone("select discount from source where rowid=?", (None,), (self.text[1],))[
+      0
+    ]
 
     if Settings.get("use_lesson_stats") or not is_lesson:
       DB.executemany_(
@@ -276,6 +285,9 @@ class Quizzer(QWidget):
       mins = (Settings.get("min_lesson_wpm"), Settings.get("min_lesson_acc"))
     else:
       mins = (Settings.get("min_wpm"), Settings.get("min_acc"))
+
+    # In-session repeat: if below target, replay the same text.
+    # Startup replay is driven by TextManager._last_incomplete_text.
 
     if 12.0 / spc < mins[0] or accuracy < mins[1] / 100.0:
       self.setText(self.text)

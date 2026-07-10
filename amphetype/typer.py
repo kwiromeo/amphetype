@@ -679,15 +679,8 @@ class TyperWindow(QWidget):
     else:
       mins = self._settings.get("min_wpm"), self._settings.get("min_acc")
 
-    # Determine if to move onto next lesson, repeat, or show review
-    #
-    # TODO: Below is where you can change the logic for how the program moves to the next lesson
-    # Desired update:
-    # - Review after lesson if we are below typing target, and settings is set for auto-review
-    # - Repeat current lesson if below typing target, and settings is set for no auto-review
-    # - Go to next text if above target typing target
-    # TODO: When updating on how to move to the next lesson, consider that you might still need to
-    # repeat the previous lesson despite the review
+    # In-session repeat: if below target, replay the same text.
+    # Startup replay is driven by TextManager._last_incomplete_text.
 
     def _set_review_text() -> None:
       ws = [x for x in stat_values if x[5] == 2]
