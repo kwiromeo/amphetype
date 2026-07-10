@@ -649,41 +649,41 @@
 
 ## Appendix: Files Reviewed
 
-| Module | Reviewed By |
-|--------|-------------|
-| `amphetype/__init__.py` | ReviewCoreData |
-| `amphetype/meta.py` | ReviewCoreData |
-| `amphetype/main.py` | ReviewCoreData |
-| `amphetype/timingtuple.py` | ReviewCoreData |
-| `amphetype/Data.py` | ReviewCoreData |
-| `amphetype/Text.py` | ReviewCoreData |
-| `amphetype/typer.py` | ReviewGuiWidgets |
-| `amphetype/Quizzer.py` | ReviewGuiWidgets |
-| `amphetype/Amphetype.py` | ReviewGuiWidgets |
-| `amphetype/QtUtil.py` | ReviewGuiWidgets |
-| `amphetype/layout.py` | ReviewGuiWidgets |
-| `amphetype/fwidgets.py` | ReviewGuiWidgets |
-| `amphetype/Config.py` | ReviewSettingsTextMgmt |
-| `amphetype/settings.py` | ReviewSettingsTextMgmt |
-| `amphetype/TextManager.py` | ReviewSettingsTextMgmt |
-| `amphetype/Lesson.py` | ReviewSettingsTextMgmt |
-| `amphetype/lesson_builder/__init__.py` | ReviewSettingsTextMgmt |
-| `amphetype/lesson_builder/code_lessons.py` | ReviewSettingsTextMgmt |
-| `amphetype/lesson_builder/widget.py` | ReviewSettingsTextMgmt |
-| `amphetype/lesson_builder/common_words.py` | ReviewSettingsTextMgmt |
-| `amphetype/Performance.py` | ReviewStatsTestsTooling |
-| `amphetype/StatWidgets.py` | ReviewStatsTestsTooling |
-| `amphetype/Widgets/Database.py` | ReviewStatsTestsTooling |
-| `amphetype/Widgets/Plotters.py` | ReviewStatsTestsTooling |
-| `tests/test_timingtuple.py` | ReviewStatsTestsTooling |
-| `tests/test_data_aggregates.py` | ReviewStatsTestsTooling |
-| `tests/test_replay_smoke.py` | ReviewStatsTestsTooling |
-| `tests/conftest.py` | ReviewStatsTestsTooling |
-| `.github/workflows/ci.yml` | ReviewStatsTestsTooling |
-| `.github/workflows/roam.yml` | ReviewStatsTestsTooling |
-| `pyproject.toml` | ReviewStatsTestsTooling |
-| `Taskfile.yml` | ReviewStatsTestsTooling |
-| `lefthook.yml` | ReviewStatsTestsTooling |
+| Module                                     | Reviewed By             |
+|--------------------------------------------|-------------------------|
+| `amphetype/__init__.py`                    | ReviewCoreData          |
+| `amphetype/meta.py`                        | ReviewCoreData          |
+| `amphetype/main.py`                        | ReviewCoreData          |
+| `amphetype/timingtuple.py`                 | ReviewCoreData          |
+| `amphetype/Data.py`                        | ReviewCoreData          |
+| `amphetype/Text.py`                        | ReviewCoreData          |
+| `amphetype/typer.py`                       | ReviewGuiWidgets        |
+| `amphetype/Quizzer.py`                     | ReviewGuiWidgets        |
+| `amphetype/Amphetype.py`                   | ReviewGuiWidgets        |
+| `amphetype/QtUtil.py`                      | ReviewGuiWidgets        |
+| `amphetype/layout.py`                      | ReviewGuiWidgets        |
+| `amphetype/fwidgets.py`                    | ReviewGuiWidgets        |
+| `amphetype/Config.py`                      | ReviewSettingsTextMgmt  |
+| `amphetype/settings.py`                    | ReviewSettingsTextMgmt  |
+| `amphetype/TextManager.py`                 | ReviewSettingsTextMgmt  |
+| `amphetype/Lesson.py`                      | ReviewSettingsTextMgmt  |
+| `amphetype/lesson_builder/__init__.py`     | ReviewSettingsTextMgmt  |
+| `amphetype/lesson_builder/code_lessons.py` | ReviewSettingsTextMgmt  |
+| `amphetype/lesson_builder/widget.py`       | ReviewSettingsTextMgmt  |
+| `amphetype/lesson_builder/common_words.py` | ReviewSettingsTextMgmt  |
+| `amphetype/Performance.py`                 | ReviewStatsTestsTooling |
+| `amphetype/StatWidgets.py`                 | ReviewStatsTestsTooling |
+| `amphetype/Widgets/Database.py`            | ReviewStatsTestsTooling |
+| `amphetype/Widgets/Plotters.py`            | ReviewStatsTestsTooling |
+| `tests/test_timingtuple.py`                | ReviewStatsTestsTooling |
+| `tests/test_data_aggregates.py`            | ReviewStatsTestsTooling |
+| `tests/test_replay_smoke.py`               | ReviewStatsTestsTooling |
+| `tests/conftest.py`                        | ReviewStatsTestsTooling |
+| `.github/workflows/ci.yml`                 | ReviewStatsTestsTooling |
+| `.github/workflows/roam.yml`               | ReviewStatsTestsTooling |
+| `pyproject.toml`                           | ReviewStatsTestsTooling |
+| `Taskfile.yml`                             | ReviewStatsTestsTooling |
+| `lefthook.yml`                             | ReviewStatsTestsTooling |
 
 ---
 
