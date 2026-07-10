@@ -41,7 +41,7 @@ class datatuple(tuple[T, ...]):
 
     def __getitem__(self, idx: int | slice | tuple[Any, ...] | list[int]) -> Any:
         if isinstance(idx, tuple):
-            return type(self)(x for x, cond in zip(self, idx) if cond)
+            return type(self)(x for x, cond in zip(self, idx, strict=True) if cond)
         if isinstance(idx, list):
             return type(self)(self[i] for i in idx)
         result = super().__getitem__(idx)

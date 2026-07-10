@@ -71,7 +71,7 @@ class StringListWidget(QTextEdit):
       if len(control) == 0:
         return
 
-      for word in words:
+      for _word in words:
         pass
       if w == "e":  # encompassing
         words = (word for word in words if any(c in word for c in control))

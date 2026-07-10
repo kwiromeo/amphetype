@@ -8,7 +8,7 @@ import sys
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QKeySequence, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut, QTabWidget, QTextBrowser
-from amphetype import *
+from amphetype import __version__
 from enum import Enum
 
 
@@ -55,21 +55,20 @@ app.DB = DB
 
 # After this we can do whatever we want.
 
-from pathlib import Path
+from pathlib import Path  # noqa: E402
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt5.QtCore import *  # noqa: E402, F403
+from PyQt5.QtGui import *  # noqa: E402, F403
 
-from amphetype.lesson_builder.widget import AdvancedLessonGenerator
-from amphetype.Config import GeneralOptions, TyperOptions
-from amphetype.fwidgets import FStackedWidget
-from amphetype.Lesson import LessonGenerator
-from amphetype.Performance import PerformanceHistory
-from amphetype.Quizzer import Quizzer
-from amphetype.StatWidgets import StringStats
-from amphetype.TextManager import TextManager
-from amphetype.typer import TyperWindow
-from amphetype.Widgets.Database import DatabaseWidget
+from amphetype.Config import GeneralOptions, TyperOptions  # noqa: E402
+from amphetype.fwidgets import FStackedWidget  # noqa: E402
+from amphetype.Lesson import LessonGenerator  # noqa: E402
+from amphetype.Performance import PerformanceHistory  # noqa: E402
+from amphetype.Quizzer import Quizzer  # noqa: E402
+from amphetype.StatWidgets import StringStats  # noqa: E402
+from amphetype.TextManager import TextManager  # noqa: E402
+from amphetype.typer import TyperWindow  # noqa: E402
+from amphetype.Widgets.Database import DatabaseWidget  # noqa: E402
 
 
 class AmphetypeWindow(QMainWindow):

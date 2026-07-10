@@ -83,7 +83,7 @@ cli_options = _args_and_env()
 # Define a timer to use.
 timer = time.perf_counter
 
-logging.info(f"Starting Amphetype v%s on (%s, %08x)", __version__, platform.system(), sys.hexversion)
+logging.info("Starting Amphetype v%s on (%s, %08x)", __version__, platform.system(), sys.hexversion)
 
 __all__ = (
   "__version__",  # NB! Forced export of __version__.

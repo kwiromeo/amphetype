@@ -124,7 +124,7 @@ class Typer(QTextEdit):
 
   def getMistakes(self):
     inv = collections.defaultdict(lambda: 0)
-    for p, m in self.mistakes.items():
+    for _p, m in self.mistakes.items():
       inv[m] += 1
     return inv
 
@@ -226,7 +226,7 @@ class Quizzer(QWidget):
     visc = collections.defaultdict(Statistic)
     text = self.text[2]
 
-    for c, t, m in zip(text, times, mis):
+    for c, t, m in zip(text, times, mis, strict=True):
       stats[c].append(t, m)
       visc[c].append(((t - spc) / spc) ** 2)
 

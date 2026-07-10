@@ -95,11 +95,11 @@ class AmphModel(QAbstractItemModel):
       r.append(self.populateData(self.indexList(parent)))
     return r[self.cols + self.hidden]
 
-  def rowCount(self, index=QModelIndex()):
+  def rowCount(self, index=QModelIndex()):  # noqa: B008
     tab = self.findList(index)
     return len(tab)
 
-  def columnCount(self, index=QModelIndex()):
+  def columnCount(self, index=QModelIndex()):  # noqa: B008
     return self.cols
 
   def data(self, index, role=Qt.DisplayRole):

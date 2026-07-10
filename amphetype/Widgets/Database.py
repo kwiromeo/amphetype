@@ -120,7 +120,7 @@ Analysis data: %d (%d keys, %d trigrams, %d words)
         True,
       )
     )
-    
+
   def cleanup(self):
     day = 24 * 60 * 60
     now = time.time()

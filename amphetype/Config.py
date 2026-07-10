@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (
   QWidget,
 )
 
-from amphetype import *
+from amphetype import DATA_DIR, cli_options
 from amphetype.QtUtil import AmphBoxLayout, AmphButton, AmphEdit, AmphGridLayout
 from amphetype.settings import FSettings
 
@@ -28,7 +28,7 @@ def get_default_db_name():
 
   try:
     _user = getpass.getuser() or "user"
-  except:  # Docs just say "otherwise, an exception is raised."
+  except Exception:  # Docs just say "otherwise, an exception is raised."
     _user = "user"
 
   _user = re.sub("[^a-z0-9_-]", "", _user, flags=re.I) or "user"
@@ -173,11 +173,10 @@ class AmphSettings(FSettings, metaclass=SettingsMeta):
     p = self.get(k)
     if p == v:
       return
-    w = v
     if isinstance(v, QColor):
-      w = v.name()
+      pass
     elif isinstance(v, QFont):
-      w = str(v)
+      pass
     self.setValue(k, v)
     self.change.emit()
     self.signal_for(k).emit(v)
@@ -361,7 +360,7 @@ class SelectCSSBox(QComboBox):
     self.addItem("<select file...>")
 
 
-from amphetype.layout import FBoxLayout
+from amphetype.layout import FBoxLayout  # noqa: E402
 
 
 class TyperInputOptions(QGroupBox):
