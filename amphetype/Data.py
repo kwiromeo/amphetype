@@ -1,3 +1,12 @@
+"""SQLite layer: `Statistic` accumulator, custom SQL aggregates
+(`agg_median`, `agg_mean`, `agg_first`), and helper functions
+(`counter`, `regex_match`, `abbreviate`, `time_group`, `ifelse`).
+
+The connection holds mutable state on `self` (`_count`, `lasttime_`,
+`time_count_`, `regex_`) for the `counter`/`time_group`/`regex_match`
+SQL functions. It is single-threaded (Qt main loop) and process-global
+(imported as `DB`).
+"""
 import bisect
 import sqlite3
 import re
@@ -44,11 +53,6 @@ class Statistic(list):
     if flawed:
       self.flawed_ += 1
 
-  def __cmp__(self, other):
-    # Python 3 removed the built-in cmp() function. It is recreated here as a lambda
-    # See https://stackoverflow.com/a/22490617 for details
-    cmp = lambda a, b: (a > b) - (a < b)  # noqa
-    return cmp(self.median(), other.median())
 
   def measurement(self):
     return trimmed_average(len(self), [(x, 1) for x in self])
@@ -66,48 +70,42 @@ class Statistic(list):
 
 
 class MedianAggregate(Statistic):
-  def step(self, value):
+  def step(self, value: float | None) -> None:
     if value is not None:
       self.append(value)
 
-  def finalize(self):
-    result = self.median()
-    return 0 if result is None else int(result)
+  def finalize(self) -> float | None:
+    return self.median()
 
 
 class MeanAggregate(object):
-  def __init__(self):
+  def __init__(self) -> None:
     self.sum_ = 0.0
     self.count_ = 0
 
-  # TODO: The expected function signature is step(self, value) -> object
-  #       Here, we are passing two parameters.
-  def step(self, value, count) -> None:
+  def step(self, value: float | None, count: int | None) -> None:
     if value is not None and count is not None:
       self.sum_ += value * count
       self.count_ += count
 
-  def finalize(self):
-    result = self.sum_ / self.count_ if self.count_ > 0 else None
-    return 0 if result is None else int(result)
-
+  def finalize(self) -> float | None:
+    return self.sum_ / self.count_ if self.count_ > 0 else None
 
 class FirstAggregate(object):
-  def __init__(self):
+  def __init__(self) -> None:
     self.val = None
 
-  def step(self, val):
-    if self.val is not None:
+  def step(self, val: object) -> None:
+    if self.val is None:
       self.val = val
 
-  def finalize(self):
-    result = 0 if self.val is None else self.val
-    return int(result)
+  def finalize(self) -> object:
+    return self.val
 
 
 class AmphDatabase(sqlite3.Connection):
-  def __init__(self, *args):
-    super(AmphDatabase, self).__init__(*args)
+  def __init__(self, *args, **kwargs):
+    super(AmphDatabase, self).__init__(*args, **kwargs)
 
     self.setRegex("")
     self.resetCounter()
@@ -140,9 +138,7 @@ class AmphDatabase(sqlite3.Connection):
     self.regex_ = re.compile(x)
 
   def abbreviate(self, x, n):
-    if len(x) <= n:
-      return x
-    return x[: n - 3] + "..."
+    return x if len(x) <= n else x[: n - 3] + "..."
 
   def match(self, x):
     if self.regex_.search(x):
@@ -169,12 +165,6 @@ create view text_source as
     """)
     self.commit()
 
-  def executemany_(self, *args):
-    super(AmphDatabase, self).executemany(*args)
-
-  def executemany(self, *args):
-    return super(AmphDatabase, self).executemany(*args)
-    # self.commit()
 
   def fetchall(self, *args):
     return self.execute(*args).fetchall()

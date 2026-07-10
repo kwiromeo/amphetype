@@ -7,6 +7,7 @@ SQLite database with the same schema as the real DB.
 import sqlite3
 import sys
 import os
+import unittest
 
 # Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -18,7 +19,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 
 from PyQt5.QtWidgets import QApplication
 app = QApplication(sys.argv)
-
 
 
 from amphetype.Config import Settings
@@ -71,86 +71,64 @@ def last_incomplete_text(db):
     return None
 
 
-# --- Test 1: Below threshold returns the text ---
-print("=== Test 1: Below threshold returns the text ===")
-db = make_db()
-db.execute("insert into source (rowid, name, discount) values (1, 'test_source', 0)")
-db.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
-# Insert a result with WPM=10, accuracy=0.5 (below default min_wpm=0? No, min_wpm=0.0 default)
-# Default min_wpm is 0.0, so 10 WPM is NOT below 0.0. Let's use min_lesson thresholds.
-# Actually, let's set discount=1 (lesson) so it uses min_lesson_wpm=0.0, min_lesson_acc=97.0
-db.execute("delete from source")
-db.execute("insert into source (rowid, name, discount) values (1, 'test_lesson', 1)")
-db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 50.0, 0.5)")
-result = last_incomplete_text(db)
-# min_lesson_wpm=0.0, so 50.0 >= 0.0 is fine. But accuracy=0.5 < 97.0/100 = 0.97, so it should return the text
-assert result is not None, "Expected text tuple for below-accuracy result"
-assert result[0] == 't1', f"Expected text_id 't1', got {result[0]}"
-print(f"  PASS: got {result}")
+class TestLastIncompleteText(unittest.TestCase):
+    """Regression tests for TextManager._last_incomplete_text."""
 
-# --- Test 2: Above threshold returns None ---
-print("=== Test 2: Above threshold returns None ===")
-db2 = make_db()
-db2.execute("insert into source (rowid, name, discount) values (1, 'test_lesson', 1)")
-db2.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
-db2.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 50.0, 0.99)")
-result = last_incomplete_text(db2)
-# accuracy=0.99 >= 0.97, wpm=50.0 >= 0.0 → None
-assert result is None, f"Expected None for above-threshold result, got {result}"
-print("  PASS: got None")
+    def test_below_threshold_returns_text(self):
+        db = make_db()
+        db.execute("insert into source (rowid, name, discount) values (1, 'test_lesson', 1)")
+        db.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
+        db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 50.0, 0.5)")
+        result = last_incomplete_text(db)
+        self.assertIsNotNone(result)
+        self.assertEqual(result[0], 't1')
 
-# --- Test 3: Deleted text returns None ---
-print("=== Test 3: Deleted text returns None ===")
-db3 = make_db()
-db3.execute("insert into source (rowid, name, discount) values (1, 'test_lesson', 1)")
-db3.execute("insert into text (id, source, text, disabled) values ('t1', 1, 'hello world', 1)")
-db3.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 10.0, 0.5)")
-result = last_incomplete_text(db3)
-# text is disabled → join with t.disabled is null excludes it → None
-assert result is None, f"Expected None for disabled text, got {result}"
-print("  PASS: got None")
+    def test_above_threshold_returns_none(self):
+        db = make_db()
+        db.execute("insert into source (rowid, name, discount) values (1, 'test_lesson', 1)")
+        db.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
+        db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 50.0, 0.99)")
+        result = last_incomplete_text(db)
+        self.assertIsNone(result)
 
-# --- Test 4: Disabled source returns None ---
-print("=== Test 4: Disabled source returns None ===")
-db4 = make_db()
-db4.execute("insert into source (rowid, name, discount, disabled) values (1, 'test_lesson', 1, 1)")
-db4.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
-db4.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 10.0, 0.5)")
-result = last_incomplete_text(db4)
-# source is disabled → join with s.disabled is null excludes it → None
-assert result is None, f"Expected None for disabled source, got {result}"
-print("  PASS: got None")
+    def test_deleted_text_returns_none(self):
+        db = make_db()
+        db.execute("insert into source (rowid, name, discount) values (1, 'test_lesson', 1)")
+        db.execute("insert into text (id, source, text, disabled) values ('t1', 1, 'hello world', 1)")
+        db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 10.0, 0.5)")
+        result = last_incomplete_text(db)
+        self.assertIsNone(result)
 
-# --- Test 5: No results returns None ---
-print("=== Test 5: No results returns None ===")
-db5 = make_db()
-result = last_incomplete_text(db5)
-assert result is None, f"Expected None for empty DB, got {result}"
-print("  PASS: got None")
+    def test_disabled_source_returns_none(self):
+        db = make_db()
+        db.execute("insert into source (rowid, name, discount, disabled) values (1, 'test_lesson', 1, 1)")
+        db.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
+        db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 10.0, 0.5)")
+        result = last_incomplete_text(db)
+        self.assertIsNone(result)
 
-# --- Test 6: Non-lesson (discount=0) uses min_wpm/min_acc ---
-print("=== Test 6: Non-lesson uses min_wpm/min_acc ===")
-db6 = make_db()
-db6.execute("insert into source (rowid, name, discount) values (1, 'test_plain', 0)")
-db6.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
-db6.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 60.0, 0.98)")
-result = last_incomplete_text(db6)
-# wpm=60.0 >= 50.0, accuracy=0.98 >= 0.97 → None (above threshold)
-assert result is None, f"Expected None for above-threshold plain text, got {result}"
-print("  PASS: got None")
+    def test_no_results_returns_none(self):
+        db = make_db()
+        result = last_incomplete_text(db)
+        self.assertIsNone(result)
 
-# --- Test 7: Below threshold for plain text returns text ---
-print("=== Test 7: Below threshold for plain text returns text ===")
-db7 = make_db()
-db7.execute("insert into source (rowid, name, discount) values (1, 'test_plain', 0)")
-db7.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
-db7.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 30.0, 0.5)")
-result = last_incomplete_text(db7)
-# wpm=30.0 < 50.0 → below threshold, returns text
-assert result is not None, "Expected text tuple for below-threshold plain text"
-assert result[0] == 't1', f"Expected text_id 't1', got {result[0]}"
-print(f"  PASS: got {result}")
-print("  PASS: got None")
+    def test_non_lesson_above_threshold_returns_none(self):
+        db = make_db()
+        db.execute("insert into source (rowid, name, discount) values (1, 'test_plain', 0)")
+        db.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
+        db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 60.0, 0.98)")
+        result = last_incomplete_text(db)
+        self.assertIsNone(result)
 
-print()
-print("All smoke tests passed!")
+    def test_non_lesson_below_threshold_returns_text(self):
+        db = make_db()
+        db.execute("insert into source (rowid, name, discount) values (1, 'test_plain', 0)")
+        db.execute("insert into text (id, source, text) values ('t1', 1, 'hello world')")
+        db.execute("insert into result (w, text_id, source, wpm, accuracy) values (1000, 't1', 1, 30.0, 0.5)")
+        result = last_incomplete_text(db)
+        self.assertIsNotNone(result)
+        self.assertEqual(result[0], 't1')
+
+
+if __name__ == "__main__":
+    unittest.main()

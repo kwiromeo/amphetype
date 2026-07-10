@@ -10,3 +10,4 @@ dist/
 .DS_Store
 .roam/index.db-shm
 .roam/index.db-wal
+.coverage
