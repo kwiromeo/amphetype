@@ -1,5 +1,6 @@
 {
-    "python.analysis.typeCheckingMode": "standard",
+    "python.languageServer": "None",
+    "python.analysis.typeCheckingMode": "off",
     "cSpell.allowCompoundWords": true,
     "cSpell.words": [
         "Amph",
@@ -37,5 +38,5 @@
     "editor.rulers": [
         100
     ],
-    "editor.tabSize": 2,
+    "editor.tabSize": 2
 }

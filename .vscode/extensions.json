@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "astral-sh.ty",
     "shellomo.enhanced-toml",
     "streetsidesoftware.code-spell-checker"
   ]
