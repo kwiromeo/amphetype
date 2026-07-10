@@ -5,10 +5,20 @@
         "Amph",
         "amphetype",
         "colemak",
+        "djlint",
+        "GTRONICK",
         "Hestvik",
+        "ints",
+        "itertools",
         "Neue",
         "ngrams",
+        "noqa",
+        "pyinstaller",
+        "pyproject",
+        "pyqt",
         "Segoe",
+        "translitcodec",
+        "Typer",
         "visc"
     ],
     "cSpell.ignorePaths": [
@@ -19,7 +29,8 @@
         ".git/{index,*refs,*HEAD}",
         ".vscode",
         ".vscode-insiders",
-        "_scripts/*"
+        "_scripts/*",
+        "uv.lock"
     ],
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 500,
