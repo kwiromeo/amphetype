@@ -1,0 +1,8 @@
+pre-commit:
+  commands:
+    ty:
+      glob: "*.py"
+      run: ty check {staged_files}
+    ruff:
+      glob: "*.py"
+      run: ruff check {staged_files}
