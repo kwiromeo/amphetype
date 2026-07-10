@@ -45,3 +45,8 @@ tasks:
     cmds:
       - uvx ruff format .
       - uvx ruff check .
+
+  requirements:
+    desc: Export runtime dependencies from uv.lock into requirements.txt
+    cmds:
+      - uv export --no-dev --no-hashes --output-file requirements.txt

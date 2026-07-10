@@ -1,7 +1,5 @@
 def main_normal():
-  # TODO (Romeo K. 05.13.2025): due to the imports in Amphetype.py
-  # it's better to import within the function than at the top of
-  # the function. Proceed carefully when editing imports
+  # in-function import: see AGENTS.md#imports
   import amphetype.Amphetype as A
 
   w = A.AmphetypeWindow()

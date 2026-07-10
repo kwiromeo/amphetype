@@ -392,7 +392,7 @@ class TextManager(QWidget):
         )
         inserted_text_ids.append(txt_id)
       except Exception:
-        pass  # silently skip ...
+        log.debug("duplicate text id, skipping", exc_info=True)
     if update:
       self.update_sources_list()
     if lesson:

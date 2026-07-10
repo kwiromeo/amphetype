@@ -46,7 +46,7 @@ Easiest is to install via `pip`[^1] or `pipx`[^2]:
 $ pip install --user amphetype
 ```
 
-Note that Amphetype requires at least Python 3.6+.
+Note that Amphetype requires at least Python 3.13 or newer.
 
 **The most recent version (1.2.x) on PyPi could be considered BETA as
 it features a major update and overhaul and a new typing widget.
@@ -92,7 +92,7 @@ are probably enough for you.)
       ```bash
       $ python3 -m pip install amphetype
       ```
-      (The command might be `python3.9` or `python3.10` or `python`.)
+      (The command might be `python3.13` or `python3` or `python`.)
 5. Run the program:
    ```bash
    $ amphetype
@@ -113,14 +113,17 @@ brew install uv
 1. Create a virtual environment and activate it:
 
 ```sh
-# create a virtual environment with Python 3.11 to support pyqt5
-uv venv venv --python 3.11
+# create a virtual environment with Python 3.13 to support pyqt5
+uv venv venv --python 3.13
 source venv/bin/activate
 ```
 
-2. Install the requirements:
+2. Export and install the requirements:
 
-```
+```sh
+# Export runtime dependencies from uv.lock into requirements.txt
+uv export --no-dev --no-hashes --output-file requirements.txt
+# Install from the generated requirements file
 uv pip install -r requirements.txt
 ```
 

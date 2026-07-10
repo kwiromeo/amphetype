@@ -11,3 +11,11 @@ dist/
 .roam/index.db-shm
 .roam/index.db-wal
 .coverage
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.pyc
+*.egg-info/
+*.egg
+*.whl
+*.so
