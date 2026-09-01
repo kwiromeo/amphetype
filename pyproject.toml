@@ -37,6 +37,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "ty>=0.0.58",
     "PyQt5-stubs>=5.15.6.0",
+    "ruff>=0.16.5",
 ]
 
 # Select correct version of pyqt5-qt5 for operating system
