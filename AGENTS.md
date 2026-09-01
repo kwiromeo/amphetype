@@ -183,7 +183,7 @@ Settings.getFont("typer_font")  # font deserialization
 - **Dev deps**: `pyinstaller` (bundling), `marimo` (notebooks), `paperclip` (clipboard), `djlint` (HTML lint)
 - **Platform support**: Linux, macOS, Windows
 - **CI**: GitHub Actions — roam-code analysis only (no test/build/deploy in CI)
-- **Editor config**: VS Code (tabSize: 2, ruler: 100, typeCheckingMode: standard), Zed (ruff + pyright)
+- **Editor config**: VS Code (tabSize: 2, ruler: 100, typeCheckingMode: standard), Zed (ty + ruff)
 
 ## Testing & QA
 
@@ -192,4 +192,4 @@ Settings.getFont("typer_font")  # font deserialization
 - **Test scope**: Minimal — 1 smoke test covering `TextManager._last_incomplete_text()` query logic (7 scenarios with in-memory SQLite)
 - **What's not tested**: All other modules, GUI behavior, file I/O, integration flows
 - **CI**: Does not run tests — only roam-code analysis (fitness scoring, PR risk assessment)
-- **Linting**: No project-wide linter/formatter configured; `ruff` and `pyright` available in Zed config
+- **Linting**: No project-wide linter/formatter configured; `ty` and `ruff` available in Zed config

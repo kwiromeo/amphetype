@@ -5,7 +5,7 @@
 {
   "languages": {
     "Python": {
-      "language_servers": ["ruff", "pyright"]
+      "language_servers": ["ty", "ruff"]
     },
     "HTML": {
       "preferred_line_length": 120
