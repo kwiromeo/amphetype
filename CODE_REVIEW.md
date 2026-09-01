@@ -266,7 +266,7 @@
 ### E3. `main_normal` doesn't commit in `finally`; crash loses data
 
 - **Location:** `amphetype/main.py:1-9`
-- **Evidence:** `r = A.app.exec_(); A.DB.commit(); return r` — if `exec_` raises or the process is killed, `commit` is skipped. The global `DB` is never explicitly closed (`Data.py:222`), relying on interpreter teardown. Per PyQt5 docs, destructor order on exit is random, which can cause crashes or data loss.
+- **Evidence:** `r = A.app.exec_(); A.app.DB.commit(); return r` — if `exec_` raises or the process is killed, `commit` is skipped. The global `DB` is never explicitly closed (`Data.py:228`), relying on interpreter teardown. Per PyQt5 docs, destructor order on exit is random, which can cause crashes or data loss.
 - **Suggestion:** Wrap in `try/finally` to commit and close the DB on exit.
 - **Severity:** Medium
 

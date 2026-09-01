@@ -6,12 +6,13 @@ The connection holds mutable state on `self` (`_count`, `lasttime_`,
 `time_count_`, `regex_`) for the `counter`/`time_group`/`regex_match`
 SQL functions. It is single-threaded (Qt main loop) and process-global
 (imported as `DB`).
+
+Invariant: `DB` is `None` until `init_db()` runs; the app flow
+guarantees this via `bootstrap()`.
 """
 import bisect
 import sqlite3
 import re
-from amphetype.Config import Settings
-
 
 def trimmed_average(total, series):
   s = 0.0
@@ -216,7 +217,13 @@ select T.rowid,T.id,T.source,T.text
     return (texts[0][1:], texts[1][1:], texts[2][1:])
 
 
-dbname = Settings.get("db_name")
+# GLOBAL — None until init_db() is called. bootstrap() calls init_db()
+# before any widget module is imported, so `from amphetype.Data import DB`
+# in widget modules binds the live connection.
+DB = None
 
-# GLOBAL
-DB = sqlite3.connect(dbname, 5, 0, "DEFERRED", False, AmphDatabase)
+
+def init_db(dbname):
+  global DB
+  DB = sqlite3.connect(dbname, 5, 0, "DEFERRED", False, AmphDatabase)
+  return DB

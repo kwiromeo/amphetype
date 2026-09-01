@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import (
 from amphetype import DATA_DIR, cli_options
 from amphetype.QtUtil import AmphBoxLayout, AmphButton, AmphEdit, AmphGridLayout
 from amphetype.settings import FSettings
+from amphetype.layout import FBoxLayout
 
 
 def get_default_db_name():
@@ -358,10 +359,6 @@ class SelectCSSBox(QComboBox):
       if v == cur:
         self.setCurrentIndex(i + 1)
     self.addItem("<select file...>")
-
-
-from amphetype.layout import FBoxLayout  # noqa: E402
-
 
 class TyperInputOptions(QGroupBox):
   def __init__(self, S, *args, **kwargs):

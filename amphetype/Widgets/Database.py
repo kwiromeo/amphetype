@@ -7,8 +7,6 @@ from amphetype.Config import Settings, SettingsEdit
 from amphetype.Data import DB
 from amphetype.QtUtil import AmphBoxLayout, AmphButton
 
-locale.setlocale(locale.LC_ALL, "")
-
 
 class IncrementalProgress(QProgressBar):
   def __init__(self, maxi, *args):
@@ -28,6 +26,7 @@ class IncrementalProgress(QProgressBar):
 
 class DatabaseWidget(QWidget):
   def __init__(self, *args):
+    locale.setlocale(locale.LC_ALL, "")
     super(DatabaseWidget, self).__init__(*args)
     self.stats_ = QLabel("\nPress Update to fetch database statistics\n")
     self.progress_ = IncrementalProgress(6 + 2)

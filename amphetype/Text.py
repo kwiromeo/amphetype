@@ -1,5 +1,7 @@
 if __name__ == "__main__":
-  import amphetype.Amphetype  # noqa: F401
+  import sys
+  from PyQt5.QtWidgets import QApplication
+  _app = QApplication(sys.argv)  # keep alive for module body; Config (imported below) requires a QApplication
 
 import codecs
 import random

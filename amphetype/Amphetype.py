@@ -1,9 +1,10 @@
-# The order of the code and imports here is important (and a kludge).
-# Due to being young and stupid I made the module files do weird
-# initialization stuff on import, and some of them depend on each
-# other.
+# Module-level imports are side-effect-free. bootstrap() creates the
+# QApplication, Settings, and the database connection before any widget
+# module is imported; widget modules import inside AmphetypeWindow.__init__
+# so `from amphetype.Data import DB` binds the live connection.
 import logging as log
 import sys
+from pathlib import Path
 
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QKeySequence, QFont
@@ -40,39 +41,21 @@ class AmphetypeApp(QApplication):
     self.setApplicationName("Amphetype")
 
 
-app = AmphetypeApp()
-
-# Import Config.py; this will do argument parsing and set up the
-# global var "Settings".
-from amphetype.Config import Settings # noqa
-
-app.settings = Settings
-
-# Only AFTER settings has been initialized, import database:
-from amphetype.Data import DB # noqa
-
-app.DB = DB
-
-# After this we can do whatever we want.
-
-from pathlib import Path  # noqa: E402
-
-from PyQt5.QtCore import *  # noqa: E402, F403
-from PyQt5.QtGui import *  # noqa: E402, F403
-
-from amphetype.Config import GeneralOptions, TyperOptions  # noqa: E402
-from amphetype.fwidgets import FStackedWidget  # noqa: E402
-from amphetype.Lesson import LessonGenerator  # noqa: E402
-from amphetype.Performance import PerformanceHistory  # noqa: E402
-from amphetype.Quizzer import Quizzer  # noqa: E402
-from amphetype.StatWidgets import StringStats  # noqa: E402
-from amphetype.TextManager import TextManager  # noqa: E402
-from amphetype.typer import TyperWindow  # noqa: E402
-from amphetype.Widgets.Database import DatabaseWidget  # noqa: E402
+app = None
 
 
 class AmphetypeWindow(QMainWindow):
   def __init__(self, *args):
+    from amphetype.Config import GeneralOptions, Settings, TyperOptions
+    from amphetype.Lesson import LessonGenerator
+    from amphetype.Performance import PerformanceHistory
+    from amphetype.Quizzer import Quizzer
+    from amphetype.StatWidgets import StringStats
+    from amphetype.TextManager import TextManager
+    from amphetype.Widgets.Database import DatabaseWidget
+    from amphetype.fwidgets import FStackedWidget
+    from amphetype.typer import TyperWindow
+
     super().__init__(*args)
 
     self.setWindowTitle("Amphetype")
@@ -158,6 +141,8 @@ class AmphetypeWindow(QMainWindow):
 
 class AboutWidget(QTextBrowser):
   def __init__(self, *args):
+    from amphetype.Config import Settings
+
     try:
       about_filepath = Settings.DATA_DIR / "about.html"
       html = about_filepath.open(mode="r", encoding="UTF-8").read()
@@ -182,8 +167,17 @@ def set_qt_css(fname):
       log.warning("file not found: %s", fname)
 
 
-Settings.signal_for("qt_css").connect(set_qt_css)
-set_qt_css(Settings.get("qt_css"))
-
-Settings.signal_for("qt_style").connect(app.setStyle)
-app.setStyle(Settings.get("qt_style"))
+def bootstrap():
+  global app
+  if app is not None:
+    return app
+  app = AmphetypeApp()
+  from amphetype.Config import Settings  # asserts a QApplication exists
+  app.settings = Settings
+  from amphetype.Data import init_db
+  app.DB = init_db(Settings.get("db_name"))
+  Settings.signal_for("qt_css").connect(set_qt_css)
+  set_qt_css(Settings.get("qt_css"))
+  Settings.signal_for("qt_style").connect(app.setStyle)
+  app.setStyle(Settings.get("qt_style"))
+  return app
